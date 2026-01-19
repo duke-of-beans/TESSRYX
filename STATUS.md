@@ -6,9 +6,9 @@
 ## Current Phase: Foundation (Phase 0)
 
 **Version:** 0.1.0-genesis  
-**Status:** Infrastructure Complete  
+**Status:** Infrastructure Complete + Instructions Complete  
 **Last Updated:** 2026-01-19  
-**Active Session:** Session 001 - Foundation Setup (COMPLETE)  
+**Active Session:** Session 001 - COMPLETE ✅  
 
 ---
 
@@ -22,23 +22,36 @@
    - Strategic pivot confirmed: Software Development wedge (not Automotive)
 
 2. **Project Infrastructure Complete** (Session 001)
-   - DNA.md created (project identity + core principles - 263 lines)
-   - STATUS.md created (this file - 197 lines)
-   - CHANGELOG.md created (version history - 194 lines)
-   - SESSION_LOG.md created (detailed session tracking - 326 lines)
-   - .gitignore created (Python + dev patterns - 229 lines)
-   - README.md created (public documentation - 274 lines)
-   - docs/ARCHITECTURE.md created (technical overview - 574 lines)
-   - docs/TessIR_v1.0_SPEC.md created (formal spec outline - 770 lines)
+   - DNA.md (263 lines) - Project identity + core principles
+   - STATUS.md (this file) - Current state tracker
+   - CHANGELOG.md (194 lines) - Version history
+   - SESSION_LOG.md (548 lines) - Detailed session tracking
+   - .gitignore (229 lines) - Python + dev patterns
+   - README.md (274 lines) - Public documentation
+   - docs/ARCHITECTURE.md (574 lines) - Technical overview
+   - docs/TessIR_v1.0_SPEC.md (770 lines) - Formal spec outline
    - docs/ADR/ directory created
    - tests/ directory created
-   - Git repository initialized
-   - Initial commit made (commit 1a1f23c, 6907 lines total documentation)
-   - Project location: D:/Projects/TESSRYX/
-   - Development environment: DEV (uses D:\Dev\CLAUDE_INSTRUCTIONS.md)
+
+3. **Instruction System Complete** (Session 001 continued)
+   - CLAUDE_INSTRUCTIONS_INAPP.md (128 lines, <500 tokens) - In-app routing
+   - CLAUDE_INSTRUCTIONS.md (1,064 lines, ~8K tokens) - Detailed local rules
+   - INSTRUCTION_SYSTEM_COMPLETE.md (271 lines) - System documentation
+   - Hierarchical two-tier design (token-efficient)
+   - Authority protocol with 6 mandatory push-back triggers
+   - LEAN-OUT enforcement with decision tree
+   - Checkpoint protocols (every 3-5 tool calls)
+   - Phase-specific workflows
+   - Complete git discipline
+
+4. **Git Repository**
+   - Initialized with 4 commits (1a1f23c, 08c4ea9, 7bf5f3e, 7ed6649)
+   - **Total Documentation:** 8,357 lines across 15 files
+   - Ready for GitHub remote setup
+   - All work committed and tracked
 
 ### 🔄 In Progress:
-**NONE** - Foundation phase complete, ready for Phase 0 work
+**NONE** - Foundation + Instructions complete, ready for Phase 0 work
 
 ---
 
@@ -46,14 +59,18 @@
 
 ### Immediate (Next Session):
 Phase 0 work begins:
-- [ ] Start TessIR v1.0 specification (detailed constraints taxonomy)
-- [ ] Create first 10 canonical test scenarios
-- [ ] Write ADR-001 through ADR-005 (formalize implicit decisions)
 - [ ] Set up GitHub remote repository
-- [ ] Push initial commit to remote
+- [ ] Push all commits to remote
+- [ ] Start TessIR v1.0 specification detailed work
+  - [ ] Complete constraint taxonomy (15+ types remaining)
+  - [ ] Define all core operations
+  - [ ] Write 10 complete examples
+- [ ] Create first 10 canonical test scenarios
+- [ ] Write ADR-001 through ADR-005
 
 ### Phase 0 (Weeks 1-4):
 - [ ] **TessIR v1.0 Specification** (formal public document)
+  - [x] Core primitives, entities, relations outlined
   - [ ] Complete constraint type taxonomy (20-30 core types)
   - [ ] Finalize confidence propagation algorithm
   - [ ] Define all core operations precisely
@@ -63,10 +80,10 @@ Phase 0 work begins:
 - [ ] **Canonical Test Suite** (50 scenarios)
   - [ ] 10 software dependency scenarios
   - [ ] 10 IT operations scenarios
-  - [ ] 10 automotive scenarios (maintain unfair advantage)
+  - [ ] 10 automotive scenarios
   - [ ] 10 construction/AEC scenarios
-  - [ ] 10 adversarial scenarios (circular deps, conflicts)
-  - [ ] Expected outputs for each (valid/invalid sequences, explanations)
+  - [ ] 10 adversarial scenarios
+  - [ ] Expected outputs for each
 
 - [ ] **Architecture Decision Records**
   - [ ] ADR-001: Why Python for V1
@@ -82,19 +99,12 @@ Phase 0 work begins:
 - [ ] PostgreSQL schema implementation
 - [ ] Unit tests + property-based tests (Hypothesis)
 
-### Phase 2 (Months 4-6):
-- [ ] OR-Tools CP-SAT integration
-- [ ] Z3 SMT integration (if needed)
-- [ ] Constraint solving implementation
-- [ ] Proof certificate generation
-- [ ] Minimal unsat core explanations
-
 ---
 
 ## Current Blockers
 
 ### 🚧 Blockers:
-**NONE** - Foundation phase complete
+**NONE** - Foundation complete
 
 ### ⚠️ Risks:
 1. **Scope creep risk:** TessIR spec could become too complex
@@ -136,25 +146,33 @@ Phase 0 work begins:
    - Decision Date: 2026-01-19
    - Decided By: Genius Council consensus (unanimous)
 
+6. **Instruction System:** Hierarchical two-tier (in-app routing + local detailed)
+   - Rationale: Token efficiency, scalability, proven DEV pattern
+   - Decision Date: 2026-01-19
+   - Decided By: David + Claude collaboration
+
 ---
 
 ## Metrics (Session 001 Complete)
 
-**Time Invested:** 1 session (~6-7 hours total: strategic planning + infrastructure)  
-**Documents Created:** 12 files (6907 lines total documentation)  
+**Time Invested:** 1 session (~7-8 hours total: planning + infrastructure + instructions)  
+**Documents Created:** 15 files (8,357 lines total documentation)  
+
 **Core Files:**
 - DNA.md (263 lines)
-- STATUS.md (197 lines)
+- STATUS.md (this file)
 - CHANGELOG.md (194 lines)
-- SESSION_LOG.md (326 lines)
+- SESSION_LOG.md (548 lines)
 - README.md (274 lines)
 - ARCHITECTURE.md (574 lines)
 - TessIR_v1.0_SPEC.md (770 lines)
-- Plus: .gitignore, Genius Council syntheses
+- CLAUDE_INSTRUCTIONS.md (1,064 lines)
+- CLAUDE_INSTRUCTIONS_INAPP.md (128 lines)
+- Plus: .gitignore, Genius Council syntheses, instruction summary
 
 **Lines of Code:** 0 (pre-implementation phase)  
 **Tests Written:** 0 (Phase 1 deliverable)  
-**Git Commits:** 1 (initial commit: 1a1f23c)  
+**Git Commits:** 4 (foundation → session complete → instructions → summary)  
 
 ---
 
@@ -169,7 +187,7 @@ Phase 0 work begins:
 ## Communication
 
 **Project Chat:** Claude Desktop (primary development interface)  
-**Version Control:** Git (local + GitHub remote - TBD)  
+**Version Control:** Git (local + GitHub remote - pending setup)  
 **Documentation:** Markdown (all files)  
 **Issue Tracking:** GitHub Issues (when public)  
 
@@ -178,27 +196,58 @@ Phase 0 work begins:
 ## Session Notes
 
 ### Session 001 (2026-01-19): ✅ COMPLETE
-**Focus:** Foundation setup post-Genius Council synthesis
+**Focus:** Foundation + instruction system setup
 
 **Accomplishments:**
 - Strategic pivot confirmed: Software Development wedge
-- Complete project infrastructure setup
-- 6907 lines of foundational documentation
-- Git repository initialized with initial commit
-- All core files created and committed
+- Complete project infrastructure (6,907 lines)
+- Hierarchical instruction system (1,192 lines)
+- Git repository with 4 commits
+- Total: 8,357 lines professional documentation
 
 **Key Insights:**
-- ERP integration insight: "Data already exists" advantage
-- Software dev wedge better than automotive (faster validation, lower acquisition cost)
-- Councils unanimous on core architecture (TessIR + Solver + Evidence + Versioning)
+- ERP integration: "Data already exists" advantage
+- Software dev > automotive (faster validation, lower cost)
+- Two-tier instructions = token efficiency + scalability
+- Authority protocol prevents quality issues
+- LEAN-OUT prevents infrastructure bloat
 
 **Next Session Goals:**
 - Set up GitHub remote
-- Begin TessIR v1.0 spec detailed work
+- Begin TessIR v1.0 detailed specification
 - Create first canonical test scenarios
 - Write formal ADRs
 
 ---
 
-**Last Updated:** 2026-01-19 (Session 001 - COMPLETE)  
-**Next Update:** After Phase 0 work begins (TessIR spec + test suite)
+## Instruction System (NEW)
+
+**Files:**
+1. **CLAUDE_INSTRUCTIONS_INAPP.md** (<500 tokens)
+   - Paste into Claude Desktop project settings
+   - Routes to detailed instructions
+   - Quick reference, core triggers
+
+2. **CLAUDE_INSTRUCTIONS.md** (~8K tokens)
+   - Comprehensive development rules
+   - Loaded when detailed guidance needed
+   - All workflows, standards, protocols
+
+**Features:**
+- Token-efficient (load only what's needed)
+- Authority protocol (6 mandatory push-back triggers)
+- LEAN-OUT enforcement (decision tree)
+- Checkpoint every 3-5 tool calls
+- Phase-specific workflows
+- Complete git discipline
+
+**To Use:**
+```bash
+# Bootstrap (every session)
+Filesystem:read_text_file({ path: "D:\\Projects\\TESSRYX\\CLAUDE_INSTRUCTIONS.md" })
+```
+
+---
+
+**Last Updated:** 2026-01-19 (Session 001 - COMPLETE with instructions)  
+**Next Update:** When Phase 0 work begins (TessIR spec development)
