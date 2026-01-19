@@ -28,7 +28,7 @@
    - SESSION_LOG.md (548 lines) - Detailed session tracking
    - .gitignore (229 lines) - Python + dev patterns
    - README.md (274 lines) - Public documentation
-   - docs/ARCHITECTURE.md (574 lines) - Technical overview
+   - docs/ARCHITECTURE.md (updated) - Technical overview
    - docs/TessIR_v1.0_SPEC.md (770 lines) - Formal spec outline
    - docs/ADR/ directory created
    - tests/ directory created
@@ -44,14 +44,34 @@
    - Phase-specific workflows
    - Complete git discipline
 
-4. **Git Repository**
-   - Initialized with 4 commits (1a1f23c, 08c4ea9, 7bf5f3e, 7ed6649)
-   - **Total Documentation:** 8,357 lines across 15 files
+4. **Leverage Strategy Complete** (Session 002) 🆕
+   - STEAL_REGISTRY.md (711 lines) - 23 proven patterns identified
+   - Comprehensive analysis of Consensus, Eye-of-Sauron, Gregore
+   - Prioritization by phase (Phase 0 → Phase 5)
+   - Integration timeline defined
+   - ROI estimates per steal
+   - Key steals:
+     - S01: Provenance Ledger (Consensus) - IMMEDIATE Phase 1
+     - S02: Dependency Impact Analyzer (EOS) - Core algorithms
+     - S03: Multi-Solver Orchestration (Consensus) - Phase 2
+     - S09: LEAN-OUT (Gregore) - Already applied
+     - S10: Authority Protocol (Gregore) - Already applied
+
+5. **Four-Pillar Documentation Complete** (Session 002) 🆕
+   - ROADMAP.md (576 lines) - Timeline with steal integration points
+   - DNA.md - Core principles
+   - STATUS.md - Current state (this file)
+   - ARCHITECTURE.md - Technical design + leverage strategy
+   - All four pillars synchronized
+
+6. **Git Repository**
+   - Initialized with multiple commits
+   - **Total Documentation:** 10,600+ lines across 18 files
    - Ready for GitHub remote setup
    - All work committed and tracked
 
 ### 🔄 In Progress:
-**NONE** - Foundation + Instructions complete, ready for Phase 0 work
+**NONE** - Foundation + Instructions + Leverage Strategy complete, ready for Phase 0 work
 
 ---
 

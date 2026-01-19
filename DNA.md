@@ -37,6 +37,16 @@ Dependency blindness costs $500B+ globally. Systems fail not because components 
 ### 1. Build Intelligence, Not Plumbing
 Don't reinvent infrastructure. Use proven solvers (OR-Tools, Z3), databases (Postgres/Neo4j), standards (OpenAPI, JSON Schema). Build the INTELLIGENCE layer.
 
+**Leverage Strategy:** Port 23 battle-tested patterns from production projects (Consensus, Eye-of-Sauron, Gregore). See [STEAL_REGISTRY.md](STEAL_REGISTRY.md) for details.
+
+**Key Steals:**
+- Provenance Ledger (Consensus) - Evidence tracking foundation
+- Dependency Impact Analyzer (EOS) - Core blast radius algorithms  
+- Multi-Solver Orchestration (Consensus) - OR-Tools + Z3 coordination
+- BullMQ Parallel Execution (Gregore) - Worker pool infrastructure
+
+**Philosophy:** Stand on the shoulders of giants. Don't rebuild what works.
+
 ### 2. Option A Perfection
 No MVPs, no prototypes, no placeholders. Every component built to production-grade standards. 100% API coverage. 10x improvements, not 10%.
 
@@ -255,6 +265,12 @@ What makes TESSRYX defensible:
   - Core architecture defined: TessIR + Solver + Evidence + Versioning
   - Technology stack locked: Python V1 → Rust V2
   - Build phases outlined: 0-5 across 12 months
+  
+- **v0.1.1-leverage** (2026-01-19): Leverage strategy documented
+  - 23 proven patterns identified from Consensus, EOS, Gregore
+  - STEAL_REGISTRY.md created (comprehensive tracking)
+  - ROADMAP.md created (timeline with steal integration)
+  - Four-pillar documentation complete (DNA + STATUS + ARCHITECTURE + ROADMAP)
 
 ---
 

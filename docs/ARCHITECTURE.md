@@ -560,12 +560,39 @@ Kubernetes cluster
 
 ---
 
+## Leverage Strategy: Proven Patterns
+
+TESSRYX accelerates development by porting battle-tested implementations from three production projects. See [STEAL_REGISTRY.md](../STEAL_REGISTRY.md) for complete details.
+
+### Key Architectural Steals:
+
+**Phase 1 (Immediate):**
+- **S01:** Provenance Ledger from Consensus (~600 LOC) - Direct port for evidence tracking
+- **S02:** Dependency Impact Analyzer from Eye-of-Sauron (~600 LOC) - Core algorithms for blast radius
+- **S06:** Character Forensics from Eye-of-Sauron (~800 LOC) - Input validation
+
+**Phase 2 (Months 4-6):**
+- **S03:** Multi-Solver Orchestration from Consensus (~2,000 LOC) - OR-Tools + Z3 coordination
+- **S04:** BullMQ Parallel Execution from Gregore (~1,500 LOC) - Worker pool management
+- **S07:** Incremental Cache from Eye-of-Sauron (~400 LOC) - Hash-based result caching
+
+**Phase 4 (Months 9-10):**
+- **S18:** PostgreSQL Schema from Consensus (~800 LOC) - Complete database design
+- **S08:** Trust Tier System from Gregore (~600 LOC) - Freemium feature gating
+
+### Philosophy: LEAN-OUT
+**Don't reinvent infrastructure.** Use proven tools (OR-Tools, Z3, NetworkX, FastAPI). Build only domain-specific INTELLIGENCE.
+
+---
+
 ## References
 
 - [DNA.md](../DNA.md) - Project principles
 - [TessIR Specification](TessIR_v1.0_SPEC.md) - Formal spec (in progress)
 - [ADR Index](ADR/) - Architecture decisions
 - [STATUS.md](../STATUS.md) - Current state
+- [STEAL_REGISTRY.md](../STEAL_REGISTRY.md) - Proven patterns to leverage
+- [ROADMAP.md](../ROADMAP.md) - Timeline and milestones
 
 ---
 
