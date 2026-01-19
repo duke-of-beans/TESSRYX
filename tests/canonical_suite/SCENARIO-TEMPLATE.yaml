@@ -1,0 +1,238 @@
+# TESSRYX Canonical Scenario Template
+# Copy this file and fill in all sections to create a new test scenario
+
+metadata:
+  id: "[domain]-[number]"  # e.g., "software_dev-01", "automotive-05"
+  name: "Short Descriptive Name"  # e.g., "Circular Dependency Detection"
+  domain: "[software_dev|it_operations|automotive|construction|adversarial]"
+  difficulty: "[simple|medium|complex|expert]"
+  created_date: "YYYY-MM-DD"
+  author: "[Name or GitHub handle]"
+  tags:
+    - "tag1"  # e.g., "circular", "version-conflict", "timing"
+    - "tag2"
+  
+problem:
+  description: |
+    Clear 1-2 sentence description of what we're validating.
+    Example: "Detect circular dependency where package A depends on B, and B depends on A."
+  
+  context: |
+    Real-world motivation for this scenario.
+    Why does this matter? When would users encounter this?
+    Example: "Common in npm ecosystems when refactoring splits packages."
+  
+  learning_objective: |
+    What capability does this scenario test?
+    Example: "Tests SCC detection and cycle explanation in dependency graphs."
+
+tessir_graph:
+  entities:
+    - id: "entity_1"
+      type: "package"  # or "service", "task", "ecu", "component"
+      name: "package-a"
+      version: "1.0.0"
+      metadata:
+        language: "javascript"
+        maintainer: "[email protected]"
+    
+    - id: "entity_2"
+      type: "package"
+      name: "package-b"
+      version: "2.0.0"
+      metadata:
+        language: "javascript"
+        maintainer: "[email protected]"
+  
+  relations:
+    - id: "rel_1"
+      type: "depends_on"
+      from_entity: "entity_1"
+      to_entity: "entity_2"
+      strength: 1.0  # 0.0-1.0 (1.0 = hard dependency)
+      contract:
+        preconditions:
+          - "entity_2 must be initialized before entity_1"
+        postconditions:
+          - "entity_1 can call functions from entity_2"
+        invariants:
+          - "entity_2 version must be compatible"
+        failure_modes:
+          - type: "version_mismatch"
+            description: "entity_2 is wrong version"
+            mitigation: "Update entity_2 to compatible version"
+    
+    - id: "rel_2"
+      type: "depends_on"
+      from_entity: "entity_2"
+      to_entity: "entity_1"
+      strength: 1.0
+      contract:
+        preconditions:
+          - "entity_1 must be initialized before entity_2"
+        # ... (creates cycle!)
+  
+  constraints:
+    - id: "constraint_1"
+      type: "Precedence"
+      entities: ["entity_1", "entity_2"]
+      parameters:
+        before: "entity_2"
+        after: "entity_1"
+        min_gap: null  # Optional temporal gap
+        max_gap: null
+      priority: "hard"  # "hard", "soft", or "preference"
+      provenance:
+        source: "doc_import"
+        evidence:
+          - "https://github.com/example/package-a/blob/main/package.json"
+        confidence: 0.95
+        asserted_by: "import-tool"
+        asserted_at: "2026-01-19T10:00:00Z"
+    
+    - id: "constraint_2"
+      type: "Precedence"
+      entities: ["entity_2", "entity_1"]
+      parameters:
+        before: "entity_1"
+        after: "entity_2"
+      priority: "hard"
+      provenance:
+        source: "doc_import"
+        evidence:
+          - "https://github.com/example/package-b/blob/main/package.json"
+        confidence: 0.95
+        asserted_by: "import-tool"
+        asserted_at: "2026-01-19T10:00:00Z"
+  
+  assumptions:
+    - id: "assumption_1"
+      statement: "Both packages are required for application to function"
+      confidence: 1.0
+      evidence:
+        - "Application code imports both packages"
+      expiry_date: null
+      owner: "developer"
+      impact_if_false:
+        description: "One package could be removed"
+        severity: "medium"
+
+expected_outputs:
+  # Is there a valid solution?
+  feasible: false  # true or false
+  
+  # If feasible, what are valid sequences/plans?
+  valid_sequences:
+    # List sequences as ordered arrays of entity IDs
+    # - ["entity_2", "entity_1"]  # entity_2 before entity_1
+    # - ["entity_1", "entity_2"]  # entity_1 before entity_2
+    # Leave empty if infeasible
+  
+  # What sequences violate constraints and why?
+  invalid_sequences:
+    - sequence: ["entity_1", "entity_2"]
+      violated_constraints: ["constraint_1"]
+      reason: "entity_1 requires entity_2 to be initialized first"
+    
+    - sequence: ["entity_2", "entity_1"]
+      violated_constraints: ["constraint_2"]
+      reason: "entity_2 requires entity_1 to be initialized first (circular!)"
+  
+  # If infeasible, what is the minimal set of conflicting constraints?
+  minimal_unsat_core:
+    - "constraint_1"  # These constraints cannot all be satisfied
+    - "constraint_2"
+  
+  # What must the explanation include?
+  explanation_must_include:
+    - "circular dependency"
+    - "package-a depends on package-b"
+    - "package-b depends on package-a"
+    - "cannot determine valid order"
+  
+  # Suggested fixes (if applicable)
+  suggested_fixes:
+    - description: "Remove dependency from package-b to package-a"
+      type: "remove_relation"
+      entities: ["entity_2"]
+      estimated_effort: "medium"
+    
+    - description: "Extract shared functionality to package-c"
+      type: "refactor"
+      entities: ["entity_1", "entity_2"]
+      estimated_effort: "high"
+  
+  # If testing change impact (versioning scenarios)
+  blast_radius:
+    changed: []  # ["entity_1"]
+    affected: []  # ["entity_2", "entity_3"]
+    risk_score: null  # 0.0-1.0 (null if not applicable)
+
+quality_checks:
+  # Automated validation (Phase 1+)
+  valid_tessir: true  # Does this parse as valid TessIR?
+  deterministic: true  # Same input always gives same output?
+  independent: true  # Doesn't depend on other scenarios?
+  
+  # Manual validation
+  reviewed_by: "[Name]"
+  reviewed_date: "YYYY-MM-DD"
+  edge_cases_documented: true
+  
+  # Performance
+  max_execution_time_ms: 1000  # Expected max solver time
+  max_memory_mb: 100  # Expected max memory usage
+
+notes:
+  # Any additional context, edge cases, or known issues
+  - "This is the simplest circular dependency case (2 nodes)"
+  - "More complex scenarios could have cycles of 3+ nodes"
+  - "Real-world example: npm package 'request' and 'request-promise'"
+
+references:
+  # Links to relevant documentation, issues, or discussions
+  - url: "https://example.com/circular-deps-explained"
+    description: "General explanation of circular dependencies"
+  
+  - url: "https://github.com/npm/npm/issues/1234"
+    description: "Related npm issue"
+
+---
+
+# FILLING OUT THIS TEMPLATE
+
+## Quick Checklist:
+- [ ] Filled metadata (id, name, domain, difficulty, tags)
+- [ ] Wrote clear problem description + context
+- [ ] Defined all entities with meaningful IDs
+- [ ] Defined all relations with complete contracts
+- [ ] Defined all constraints with provenance
+- [ ] Listed assumptions (if any)
+- [ ] Specified expected feasibility (true/false)
+- [ ] Listed valid sequences (if feasible) OR unsat core (if infeasible)
+- [ ] Listed invalid sequences with reasons
+- [ ] Defined explanation requirements (must-include phrases)
+- [ ] Suggested fixes (if applicable)
+- [ ] Added notes and references
+- [ ] Reviewed for completeness
+
+## Tips:
+1. **Be specific:** Use concrete names (not "entity1" but "package-react")
+2. **Be complete:** Fill in ALL contract fields, even if simple
+3. **Be realistic:** Base on real-world examples when possible
+4. **Be deterministic:** Same input MUST give same output
+5. **Be independent:** Scenario shouldn't depend on other scenarios
+6. **Be documented:** Explain WHY, not just WHAT
+
+## Validation:
+Run `python runner.py --validate this-file.yaml` (Phase 1+) to check:
+- Valid YAML syntax
+- Valid TessIR structure
+- All required fields present
+- Consistent entity/constraint references
+
+---
+
+**Template Version:** 1.0  
+**Last Updated:** 2026-01-19  
+**Source:** Adapted from Gregore benchmark framework (S11)

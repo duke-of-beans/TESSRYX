@@ -556,8 +556,11 @@ update_what:
     - Document decisions with rationale
     - Note any strategic pivots
 
-method: "Append to SESSION_LOG, update STATUS/CHANGELOG inline"
+method: "Impact-aware sync (see docs/IMPACT-AWARE-DOC-SYNC.md)"
 ```
+
+**Documentation Sync Protocol:**
+See [docs/IMPACT-AWARE-DOC-SYNC.md](docs/IMPACT-AWARE-DOC-SYNC.md) for complete protocol. Key principle: **Sync what changed, not everything.**
 
 ---
 
@@ -625,31 +628,49 @@ test_scenario_creation:
 adr_writing:
   process:
     1: "Identify decision requiring formal record"
-    2: "Use ADR template"
-    3: "Document: Context, Decision, Alternatives, Consequences"
+    2: "Copy docs/ADR/ADR-000-TEMPLATE.md"
+    3: "Fill in all sections: Context, Decision, Alternatives, Consequences"
     4: "Review with user if major"
     5: "Commit as docs/ADR/ADR-NNN-title.md"
   
-  template: |
-    # ADR-NNN: [Title]
-    
-    ## Status
-    [Proposed | Accepted | Deprecated | Superseded]
-    
-    ## Context
-    [What is the issue we're facing?]
-    
-    ## Decision
-    [What are we doing?]
-    
-    ## Alternatives Considered
-    [What other options did we evaluate?]
-    
-    ## Consequences
-    [What becomes easier/harder?]
-    
-    ## References
-    [Links to discussions, docs, examples]
+  template_location: "docs/ADR/ADR-000-TEMPLATE.md"
+  
+  numbering: "Sequential (ADR-001, ADR-002, etc.)"
+  
+  when_to_create:
+    - "Technology choice (Python vs Rust)"
+    - "Architecture pattern (Postgres vs Neo4j)"
+    - "Strategic decision (open spec vs closed)"
+    - "Constraint design (first-class objects)"
+    - "Any decision with long-term impact"
+
+test_scenario_creation:
+  process:
+    1: "Identify domain (software/IT/automotive/construction/adversarial)"
+    2: "Copy tests/canonical_suite/SCENARIO-TEMPLATE.yaml"
+    3: "Define scenario (clear problem statement)"
+    4: "List entities involved"
+    5: "Define relations/constraints"
+    6: "Specify expected valid sequences"
+    7: "Specify expected invalid sequences + why"
+    8: "Define expected explanations"
+    9: "Add to tests/canonical_suite/[domain]/"
+  
+  framework_docs: "tests/canonical_suite/README.md"
+  template: "tests/canonical_suite/SCENARIO-TEMPLATE.yaml"
+  
+  format:
+    - YAML
+    - Include all TessIR primitives used
+    - Human-readable descriptions
+    - Machine-processable structure
+  
+  quality_standards:
+    - Deterministic (same input → same output)
+    - Independent (no dependencies on other scenarios)
+    - Complete (all TessIR fields filled)
+    - Realistic (based on real-world examples)
+
 ```
 
 ### Phase 1: Core Implementation (FUTURE)
@@ -1040,6 +1061,21 @@ cd D:\Projects\TESSRYX; git add .; git commit -m "type: message"
 
 # Git push
 cd D:\Projects\TESSRYX; git push origin main
+```
+
+### Infrastructure Templates
+```bash
+# Create new ADR
+Copy: docs/ADR/ADR-000-TEMPLATE.md → docs/ADR/ADR-NNN-title.md
+
+# Create new test scenario
+Copy: tests/canonical_suite/SCENARIO-TEMPLATE.yaml → tests/canonical_suite/[domain]/NN-name.yaml
+
+# Documentation sync protocol
+Read: docs/IMPACT-AWARE-DOC-SYNC.md
+
+# Test suite framework
+Read: tests/canonical_suite/README.md
 ```
 
 ### Key Principles (Quick Reminder)
