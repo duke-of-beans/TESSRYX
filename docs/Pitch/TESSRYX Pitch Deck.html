@@ -1,0 +1,1414 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TESSRYX - Universal Dependency Intelligence Infrastructure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background-color: #1A2B4A;
+            color: #E5E7EB;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .deck-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .slide-content {
+            flex: 1;
+            padding: 3rem;
+            overflow-y: auto;
+        }
+        
+        .slide-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .slide-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: white;
+            border-bottom: 2px solid #D4AF37;
+            padding-bottom: 1rem;
+        }
+        
+        .cover-slide {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+        }
+        
+        .cover-logo {
+            max-width: 400px;
+            width: 80%;
+            margin-bottom: 2rem;
+            filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.4));
+        }
+        
+        .cover-title {
+            font-size: 6rem;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            color: white;
+            text-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+            margin-bottom: 3rem;
+        }
+        
+        .cover-tagline {
+            font-size: 2.5rem;
+            letter-spacing: 0.05em;
+            color: #D1D5DB;
+            font-weight: 300;
+            margin-bottom: 3rem;
+        }
+        
+        .cover-subtitle {
+            font-size: 1.25rem;
+            color: #9CA3AF;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+        }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        
+        .card {
+            background-color: rgba(31, 41, 55, 0.5);
+            padding: 2rem;
+            border-radius: 0.5rem;
+            border: 1px solid #374151;
+        }
+        
+        .card-success {
+            border-left: 4px solid #10B981;
+        }
+        
+        .card-warning {
+            border-left: 4px solid #F59E0B;
+        }
+        
+        .card-error {
+            background-color: rgba(127, 29, 29, 0.2);
+            border: 1px solid #991B1B;
+        }
+        
+        .card-info {
+            background-color: rgba(30, 58, 138, 0.3);
+            border: 1px solid #1E40AF;
+        }
+        
+        .quote {
+            font-size: 1.5rem;
+            color: #D1D5DB;
+            font-style: italic;
+            border-left: 4px solid #F59E0B;
+            padding-left: 1.5rem;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .navigation {
+            background-color: #0F1A2E;
+            border-top: 1px solid #4A7BA7;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            border: none;
+            background-color: #4A7BA7;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+        
+        .nav-button:hover:not(:disabled) {
+            opacity: 0.8;
+        }
+        
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background-color: #2A3B5A;
+        }
+        
+        .slide-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .slide-number {
+            color: #9CA3AF;
+            font-size: 0.875rem;
+        }
+        
+        .slide-dots {
+            display: flex;
+            gap: 0.25rem;
+            max-width: 500px;
+            overflow-x: auto;
+        }
+        
+        .slide-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 9999px;
+            background-color: #4A7BA7;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .slide-dot.active {
+            background-color: #D4AF37;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        
+        th {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #374151;
+            color: #9CA3AF;
+        }
+        
+        th.highlight {
+            background-color: rgba(6, 78, 59, 0.2);
+            color: #10B981;
+            text-align: center;
+        }
+        
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #1F2937;
+            color: #D1D5DB;
+        }
+        
+        td.center {
+            text-align: center;
+        }
+        
+        td.success {
+            background-color: rgba(6, 78, 59, 0.1);
+            color: #10B981;
+        }
+        
+        td.error {
+            color: #EF4444;
+        }
+        
+        td.warning {
+            color: #F59E0B;
+        }
+        
+        .code-block {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 1.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid #374151;
+            color: #10B981;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        
+        .emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .text-sm { font-size: 0.875rem; }
+        .text-lg { font-size: 1.125rem; }
+        .text-xl { font-size: 1.25rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .text-3xl { font-size: 1.875rem; }
+        .text-4xl { font-size: 2.25rem; }
+        
+        .font-bold { font-weight: 700; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mt-3 { margin-top: 0.75rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-8 { margin-top: 2rem; }
+        .mt-12 { margin-top: 3rem; }
+        
+        .text-white { color: white; }
+        .text-gray-300 { color: #D1D5DB; }
+        .text-gray-400 { color: #9CA3AF; }
+        .text-gray-500 { color: #6B7280; }
+        .text-red-400 { color: #F87171; }
+        .text-green-400 { color: #34D399; }
+        .text-yellow-400 { color: #FBBF24; }
+        .text-blue-400 { color: #60A5FA; }
+        .text-purple-400 { color: #C084FC; }
+        
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .space-y-3 > * + * { margin-top: 0.75rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-y-8 > * + * { margin-top: 2rem; }
+        
+        .gradient-card {
+            background: linear-gradient(135deg, rgba(30, 58, 138, 0.4), rgba(88, 28, 135, 0.4));
+            border: 1px solid #1E40AF;
+        }
+        
+        .italic { font-style: italic; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .gap-4 { gap: 1rem; }
+        .gap-6 { gap: 1.5rem; }
+        .gap-8 { gap: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="deck-container">
+        <div class="slide-content" id="slideContent"></div>
+        
+        <div class="navigation">
+            <button class="nav-button" id="prevBtn" onclick="prevSlide()">
+                <span>◀</span> Previous
+            </button>
+            
+            <div class="slide-indicator">
+                <span class="slide-number" id="slideNumber"></span>
+                <div class="slide-dots" id="slideDots"></div>
+            </div>
+            
+            <button class="nav-button" id="nextBtn" onclick="nextSlide()">
+                Next <span>▶</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = [            // Slide 0: Cover
+            {
+                title: null,
+                content: `
+                    <div class="cover-slide">
+                        <img src="../../brand/TESSRYX-logo-primary-dark.png" alt="TESSRYX" class="cover-logo">
+                        <div class="cover-tagline">Build Certain.</div>
+                        <div class="cover-subtitle">Universal Dependency Intelligence Infrastructure</div>
+                    </div>
+                `
+            },
+
+            // Slide 1: The Problem
+            {
+                title: "The Problem: Dependencies Are Invisible Until They Break",
+                content: `
+                    <div class="space-y-8">
+                        <div class="quote">
+                            "We spent 6 months building a feature that couldn't ship because a dependency conflict we never saw coming."
+                            <div class="text-sm text-gray-400 mt-2">— Engineering Director, Fortune 500</div>
+                        </div>
+
+                        <div class="grid-2">
+                            <div class="card card-error">
+                                <div class="emoji">💥</div>
+                                <div class="text-xl font-bold text-white mb-4">Current State: Reactive & Fragile</div>
+                                <div class="text-gray-300 space-y-2">
+                                    <div>• Dependency graphs show connections, not constraints</div>
+                                    <div>• "Will this work?" answered by trying it and seeing</div>
+                                    <div>• Supply chain attacks (SolarWinds, Log4Shell, XZ Utils)</div>
+                                    <div>• Integration hell discovered at merge time</div>
+                                    <div>• No formal proof, just hope and manual testing</div>
+                                </div>
+                            </div>
+
+                            <div class="card" style="border-left: 4px solid #10B981;">
+                                <div class="emoji">✓</div>
+                                <div class="text-xl font-bold text-white mb-4">What's Needed: Proactive & Provable</div>
+                                <div class="text-gray-300 space-y-2">
+                                    <div>• Constraint-aware dependency intelligence</div>
+                                    <div>• Formal verification: prove plans work BEFORE execution</div>
+                                    <div>• Evidence-based trust (provenance + confidence scoring)</div>
+                                    <div>• "What breaks if X changes?" with mathematical proof</div>
+                                    <div>• Turn integration uncertainty into verified certainty</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background-color: rgba(139, 92, 246, 0.1); border: 1px solid #8B5CF6;">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-white mb-3">The Gap</div>
+                                <div class="text-lg text-gray-300">
+                                    Tools show you the graph. TESSRYX proves it works.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 2: The Solution
+            {
+                title: "The Solution: Universal Dependency Intelligence",
+                content: `
+                    <div class="space-y-6">
+                        <div class="text-xl text-gray-300 mb-6">
+                            TESSRYX transforms dependency mapping from visualization into <span class="text-yellow-400 font-bold">verification</span>.
+                        </div>
+
+                        <div class="grid-3">
+                            <div class="card gradient-card">
+                                <div class="text-3xl mb-3">🧠</div>
+                                <div class="font-bold text-white text-xl mb-3">Constraint-Aware Intelligence</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>• Not just "A depends on B"</div>
+                                    <div>• "A requires B>=2.0 AND C<3.0"</div>
+                                    <div>• "If D changes, E must change"</div>
+                                    <div>• Formal constraint solving (SAT/SMT)</div>
+                                </div>
+                            </div>
+
+                            <div class="card gradient-card">
+                                <div class="text-3xl mb-3">✓</div>
+                                <div class="font-bold text-white text-xl mb-3">Formal Verification</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>• Mathematical proof of feasibility</div>
+                                    <div>• "Can I upgrade X?" → Yes with proof OR No with explanation</div>
+                                    <div>• Blast radius analysis</div>
+                                    <div>• What-if scenario modeling</div>
+                                </div>
+                            </div>
+
+                            <div class="card gradient-card">
+                                <div class="text-3xl mb-3">📊</div>
+                                <div class="font-bold text-white text-xl mb-3">Evidence-Based Trust</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>• Every edge has provenance</div>
+                                    <div>• Confidence scoring (Bayesian calibration)</div>
+                                    <div>• Community validation</div>
+                                    <div>• Contradictions detected automatically</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(217, 119, 6, 0.2)); border: 2px solid #EAB308;">
+                            <div class="text-center space-y-3">
+                                <div class="text-3xl font-bold text-white">
+                                    From "Does it work?" to "Here's the proof."
+                                </div>
+                                <div class="text-xl text-gray-300">
+                                    Infrastructure that becomes indispensable. Intelligence that becomes irreplaceable.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 3: How It Works
+            {
+                title: "How It Works: The TESSRYX Stack",
+                content: `
+                    <div class="space-y-6">
+                        <div class="grid-2 gap-6">
+                            <div class="card">
+                                <div class="font-bold text-blue-400 text-xl mb-4">1. TessIR: Universal Intermediate Representation</div>
+                                <div class="code-block">
+{
+  "entities": {
+    "react-18.2.0": {"type": "package"},
+    "typescript-5.0.0": {"type": "package"}
+  },
+  "relations": [
+    {
+      "from": "my-app",
+      "to": "react-18.2.0",
+      "type": "requires",
+      "constraint": ">=18.0.0 <19.0.0"
+    }
+  ],
+  "constraints": [
+    {
+      "type": "mutex",
+      "entities": ["react-17", "react-18"],
+      "reason": "Breaking changes"
+    }
+  ]
+}</div>
+                                <div class="text-gray-400 text-sm mt-3">
+                                    Open standard for dependency intelligence. Think "LLVM IR for dependencies"
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="font-bold text-green-400 text-xl mb-4">2. Constraint Solver Integration</div>
+                                <div class="text-gray-300 space-y-3">
+                                    <div>
+                                        <div class="font-bold text-white">OR-Tools (Google)</div>
+                                        <div class="text-sm">Constraint Programming (CP-SAT) for discrete optimization</div>
+                                    </div>
+                                    <div>
+                                        <div class="font-bold text-white">Z3 (Microsoft)</div>
+                                        <div class="text-sm">SMT solving for logical constraints</div>
+                                    </div>
+                                    <div class="mt-4 text-yellow-400 font-bold">
+                                        We don't build SAT solvers. We apply proven ones to dependencies.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3B82F6;">
+                            <div class="font-bold text-blue-400 text-xl mb-4">3. Evidence Ledger: Trust Infrastructure</div>
+                            <div class="grid-3 gap-4 text-sm">
+                                <div>
+                                    <div class="font-bold text-white mb-2">Source Provenance</div>
+                                    <div class="text-gray-400">Where did this dependency claim come from?</div>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-white mb-2">Confidence Scoring</div>
+                                    <div class="text-gray-400">How sure are we? (0.0 - 1.0 Bayesian calibration)</div>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-white mb-2">Cross-Validation</div>
+                                    <div class="text-gray-400">Does the community agree?</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" style="background-color: rgba(168, 85, 247, 0.1); border: 1px solid #A855F7;">
+                            <div class="font-bold text-purple-400 text-xl mb-4">4. Version Graph: Git for Dependencies</div>
+                            <div class="text-gray-300 space-y-2 text-sm">
+                                <div>• <span class="text-white font-bold">Commit:</span> Checkpoint working state</div>
+                                <div>• <span class="text-white font-bold">Branch:</span> Try "what-if" scenarios without risk</div>
+                                <div>• <span class="text-white font-bold">Diff:</span> Impact analysis between states</div>
+                                <div>• <span class="text-white font-bold">Merge:</span> Apply validated changes</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 5: Industry Verticals - Data Exists
+            {
+                title: "Multi-Wedge Strategy: Proven Markets with Existing Data",
+                content: `
+                    <div class="space-y-6">
+                        <div class="grid-3">
+                            <div class="card" style="border-left: 4px solid #F59E0B;">
+                                <div class="text-3xl mb-3">&#127981;</div>
+                                <div class="font-bold text-white text-lg mb-3">ERP Systems</div>
+                                <div class="text-sm text-gray-400 mb-3">Healthcare, Manufacturing, Government</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div class="font-bold text-yellow-400">Market: $80B PLM/MES</div>
+                                    <div><span class="text-white font-bold">Data Exists:</span> Bill of Materials, supply chain relationships</div>
+                                    <div><span class="text-white font-bold">Value:</span> Prove plans feasible BEFORE production</div>
+                                    <div><span class="text-white font-bold">Revenue:</span> $50K-500K/year per facility</div>
+                                </div>
+                                <div class="mt-4 text-xs text-green-400">Data structured, Proven ROI, Compliance urgency</div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #3B82F6;">
+                                <div class="text-3xl mb-3">&#9881;</div>
+                                <div class="font-bold text-white text-lg mb-3">ServiceNow CMDB</div>
+                                <div class="text-sm text-gray-400 mb-3">IT Operations Dependency Mapping</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div class="font-bold text-blue-400">Market: $24-32B</div>
+                                    <div><span class="text-white font-bold">Data Exists:</span> Configuration items, service dependencies</div>
+                                    <div><span class="text-white font-bold">Value:</span> Reduce outages 40-60%</div>
+                                    <div><span class="text-white font-bold">Revenue:</span> $250K-2M/year enterprise</div>
+                                </div>
+                                <div class="mt-4 text-xs text-green-400">Partnership potential, 18-24mo moat</div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #10B981;">
+                                <div class="text-3xl mb-3">&#127963;</div>
+                                <div class="font-bold text-white text-lg mb-3">Government & Defense</div>
+                                <div class="text-sm text-gray-400 mb-3">Mission-Critical Infrastructure</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div class="font-bold text-green-400">Market: $50B+ federal IT</div>
+                                    <div><span class="text-white font-bold">Data Exists:</span> System architectures, mission models</div>
+                                    <div><span class="text-white font-bold">Value:</span> Prove mission continuity</div>
+                                    <div><span class="text-white font-bold">Revenue:</span> $500K-5M/year contracts</div>
+                                </div>
+                                <div class="mt-4 text-xs text-green-400">National security, Compliance mandates</div>
+                            </div>
+                        </div>
+                        <div class="card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(217, 119, 6, 0.2)); border: 2px solid #EAB308;">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-white mb-3">Common Thread</div>
+                                <div class="text-lg text-gray-300">Data already exists. TESSRYX adds verification that proves plans work BEFORE execution.</div>
+                                <div class="text-sm text-yellow-400 mt-3">Time to First Revenue: 6-12 months</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 6: Industry Verticals - Greenfield
+            {
+                title: "Expansion Wedges: Massive Impact, No Existing Solutions",
+                content: `
+                    <div class="space-y-6">
+                        <div class="grid-2">
+                            <div class="card" style="border-left: 4px solid #EF4444;">
+                                <div class="text-3xl mb-3">&#128663;</div>
+                                <div class="font-bold text-white text-xl mb-3">Automotive Manufacturing</div>
+                                <div class="text-sm text-gray-400 mb-3">Just-In-Time Supply Chains</div>
+                                <div class="text-gray-300 text-sm space-y-3">
+                                    <div class="font-bold text-red-400">Market: $15-30B</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-1">Current Pain:</div>
+                                        <div class="text-xs">Semiconductor shortages halted production. Single supplier failure cascades through 50+ plants.</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-bold mb-1">TESSRYX Value:</div>
+                                        <div class="text-xs">If Taiwan semiconductor drops 30%, which models can we build? Formal proof with alternatives</div>
+                                    </div>
+                                    <div class="text-yellow-400">Revenue: $1M-10M/year per OEM</div>
+                                </div>
+                                <div class="mt-4 text-xs text-green-400">Greenfield, Regulatory tailwind, $1M+/day halt cost</div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #8B5CF6;">
+                                <div class="text-3xl mb-3">&#127959;</div>
+                                <div class="font-bold text-white text-xl mb-3">Construction & Infrastructure</div>
+                                <div class="text-sm text-gray-400 mb-3">Project Dependencies & Material Supply</div>
+                                <div class="text-gray-300 text-sm space-y-3">
+                                    <div class="font-bold text-purple-400">Market: $6-10B</div>
+                                    <div>
+                                        <div class="text-white font-bold mb-1">Current Pain:</div>
+                                        <div class="text-xs">Material delays cascade. No way to prove feasibility of accelerated schedules.</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-white font-bold mb-1">TESSRYX Value:</div>
+                                        <div class="text-xs">Can we finish 3 months early with premium materials? Formal proof with cost analysis</div>
+                                    </div>
+                                    <div class="text-yellow-400">Revenue: $500K-5M/year per contractor</div>
+                                </div>
+                                <div class="mt-4 text-xs text-green-400">Greenfield, Cost overruns 5-20%, Govt boom</div>
+                            </div>
+                        </div>
+                        <div class="card gradient-card">
+                            <div class="text-xl font-bold text-white mb-4">Why Now? Convergence of Forces</div>
+                            <div class="grid-3 text-sm">
+                                <div>
+                                    <div class="text-3xl mb-2">&#128293;</div>
+                                    <div class="font-bold text-white mb-2">Supply Chain Fragility</div>
+                                    <div class="text-gray-400">COVID, geopolitics exposed just-in-time vulnerabilities</div>
+                                </div>
+                                <div>
+                                    <div class="text-3xl mb-2">&#128203;</div>
+                                    <div class="font-bold text-white mb-2">Regulatory Tailwinds</div>
+                                    <div class="text-gray-400">AUTOSAR, ISO 26262, NIST, CMMC mandates</div>
+                                </div>
+                                <div>
+                                    <div class="text-3xl mb-2">&#9889;</div>
+                                    <div class="font-bold text-white mb-2">Technology Ready</div>
+                                    <div class="text-gray-400">OR-Tools, Z3 proven. Cloud makes solving affordable</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 7: Technical Moats
+            {
+                title: "From Technical Superiority to Cognitive Monopoly",
+                content: `
+                    <div class="space-y-6">
+                        <div class="card gradient-card">
+                            <div class="text-xl font-bold text-white mb-4">Technical Moats (Replication Barriers)</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Component</th>
+                                        <th>What It Is</th>
+                                        <th class="highlight">Competitor Gap</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-bold text-white">Constraint Solving</td>
+                                        <td>OR-Tools CP-SAT + Z3 SMT integration, formal proof</td>
+                                        <td class="success">18-24 months</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold text-white">Evidence Trust</td>
+                                        <td>Bayesian confidence, provenance tracking</td>
+                                        <td class="success">18-24 months</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold text-white">TessIR Standard</td>
+                                        <td>Universal IR, ecosystem network effects</td>
+                                        <td class="success">24-36 months</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="text-center text-yellow-400 mt-4 font-bold">Starting later = Facing exponentially growing data moat + established standard</div>
+                        </div>
+                        <div class="grid-3">
+                            <div class="card" style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3B82F6;">
+                                <div class="font-bold text-blue-400 mb-3">TessIR Standard to Ecosystem Lock-In</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div>Open Spec, Community Adoption, TESSRYX = Reference Implementation</div>
+                                    <div class="text-yellow-400 mt-3">Like SQL, Git, Docker: Open standard, commercial capture</div>
+                                </div>
+                            </div>
+                            <div class="card" style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid #10B981;">
+                                <div class="font-bold text-green-400 mb-3">Evidence Accumulation to Data Moat</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div>Every Query validates, updates confidence, increases trust, drives adoption</div>
+                                    <div class="text-yellow-400 mt-3">Year 3: 100M validated dependencies. Late entrant can't catch up</div>
+                                </div>
+                            </div>
+                            <div class="card" style="background-color: rgba(168, 85, 247, 0.1); border: 1px solid #A855F7;">
+                                <div class="font-bold text-purple-400 mb-3">Domain Packs to Platform Lock-In</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div>Official Packs, Community Contributes, Marketplace Network Effects</div>
+                                    <div class="text-yellow-400 mt-3">Like npm, Docker Hub: Platform stickiness</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(217, 119, 6, 0.2)); border: 2px solid #EAB308;">
+                            <div class="text-center space-y-3">
+                                <div class="text-2xl font-bold text-white">The TESSRYX Strategy</div>
+                                <div class="text-lg text-gray-300">Move Fast, Establish Standard, Compound Data, Build Ecosystem, Capture Value</div>
+                                <div class="text-sm text-yellow-400">Technical moats that compound over time. The longer we operate, the wider the gap.</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 8: Market Size
+            {
+                title: "$40B+ Dependency Intelligence Opportunity",
+                content: `
+                    <div class="space-y-6">
+                        <div class="grid-3">
+                            <div class="card" style="border-left: 4px solid #10B981;">
+                                <div class="font-bold text-green-400 text-2xl mb-3">TAM: $26.8B</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>â€¢ Software Dev: $18B</div>
+                                    <div>â€¢ IT Operations: $7.2B</div>
+                                    <div>â€¢ Manufacturing: $1.6B</div>
+                                </div>
+                                <div class="text-gray-400 text-xs mt-4">Growing 15-20% annually</div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #3B82F6;">
+                                <div class="font-bold text-blue-400 text-2xl mb-3">SAM: $8B</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>Cloud-native orgs</div>
+                                    <div>DevOps-mature teams</div>
+                                    <div>Compliance-focused</div>
+                                    <div>Fortune 1000</div>
+                                </div>
+                                <div class="text-gray-400 text-xs mt-4">Addressable segments</div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #8B5CF6;">
+                                <div class="font-bold text-purple-400 text-2xl mb-3">SOM: $500M</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>Year 5 target</div>
+                                    <div>6% market share</div>
+                                    <div>Conservative estimate</div>
+                                </div>
+                                <div class="text-gray-400 text-xs mt-4">5-year obtainable</div>
+                            </div>
+                        </div>
+                        <div class="card gradient-card">
+                            <div class="text-xl font-bold text-white mb-4">Proven Willingness to Pay</div>
+                            <div class="grid-3 text-sm text-gray-300">
+                                <div>
+                                    <div class="text-2xl font-bold text-green-400 mb-2">$4.7B</div>
+                                    <div class="font-bold text-white">Snyk</div>
+                                    <div>Vulnerability scanning (reactive alerts)</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-blue-400 mb-2">$4.5B</div>
+                                    <div class="font-bold text-white">Sonatype</div>
+                                    <div>Repository management</div>
+                                </div>
+                                <div>
+                                    <div class="text-2xl font-bold text-purple-400 mb-2">$7.5B</div>
+                                    <div class="font-bold text-white">GitHub</div>
+                                    <div>Acquired by Microsoft (Dependabot)</div>
+                                </div>
+                            </div>
+                            <div class="text-center text-yellow-400 mt-4">We add: Formal verification + constraint solving + evidence-based trust</div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 9: Business Model
+            {
+                title: "How We Print Money: Multi-Tier SaaS + Marketplace",
+                content: `
+                    <div class="space-y-6">
+                        <div class="grid-2">
+                            <div class="card" style="border-left: 4px solid #6B7280;">
+                                <div class="font-bold text-white text-lg mb-3">&#127775; Free Tier</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>â€¢ 1,000 constraints</div>
+                                    <div>â€¢ Public Domain Packs</div>
+                                    <div>â€¢ Community support</div>
+                                    <div><span class="text-yellow-400">Hook:</span> Developer-led growth</div>
+                                </div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #3B82F6;">
+                                <div class="font-bold text-white text-lg mb-3">&#128187; Developer: $49-149/mo</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>â€¢ 50K constraints</div>
+                                    <div>â€¢ Private repos</div>
+                                    <div>â€¢ Faster solves</div>
+                                    <div><span class="text-yellow-400">Convert:</span> 7% free â†’ paid</div>
+                                </div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #8B5CF6;">
+                                <div class="font-bold text-white text-lg mb-3">&#128101; Team: $499/mo</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>â€¢ Unlimited constraints</div>
+                                    <div>â€¢ Collaboration features</div>
+                                    <div>â€¢ Audit logs</div>
+                                    <div><span class="text-yellow-400">Expand:</span> 20% growth/year</div>
+                                </div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #10B981;">
+                                <div class="font-bold text-white text-lg mb-3">&#127970; Enterprise: $50K-500K/yr</div>
+                                <div class="text-gray-300 text-sm space-y-2">
+                                    <div>â€¢ Custom Domain Packs</div>
+                                    <div>â€¢ On-premise deployment</div>
+                                    <div>â€¢ SLA + dedicated support</div>
+                                    <div><span class="text-yellow-400">Land-and-expand:</span> 130% NRR</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card gradient-card">
+                            <div class="text-xl font-bold text-white mb-4">&#128176; Unit Economics</div>
+                            <div class="grid-3 text-center">
+                                <div>
+                                    <div class="text-3xl font-bold text-green-400 mb-2">$83</div>
+                                    <div class="text-sm text-gray-300">Average Revenue Per User (ARPU)</div>
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-bold text-blue-400 mb-2">78%</div>
+                                    <div class="text-sm text-gray-300">Gross Margin</div>
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-bold text-purple-400 mb-2">7%</div>
+                                    <div class="text-sm text-gray-300">Free-to-Paid Conversion</div>
+                                </div>
+                            </div>
+                            <div class="text-center text-yellow-400 mt-4">
+                                Plus: Domain Pack Marketplace (20% platform fee, like AWS Marketplace)
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 10: Competition
+            {
+                title: "Competition: Why They Can't Do What We Do",
+                content: `
+                    <div class="space-y-6">
+                        <div class="card gradient-card">
+                            <div class="text-xl font-bold text-white mb-4">Current Players (None Can Verify Feasibility)</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Company</th>
+                                        <th>What They Do</th>
+                                        <th>Why They Can't Win Here</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-bold text-white">Snyk / Dependabot</td>
+                                        <td>Security scanning, reactive alerts</td>
+                                        <td class="text-red-400">No constraint solving, no feasibility proofs</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold text-white">ServiceNow CMDB</td>
+                                        <td>IT mapping, change management</td>
+                                        <td class="text-red-400">Proprietary, no formal verification</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold text-white">Neo4j</td>
+                                        <td>Graph database</td>
+                                        <td class="text-red-400">Storage only, no constraint solving</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold text-white">Jira / Linear</td>
+                                        <td>Project management</td>
+                                        <td class="text-red-400">Track tasks, don't validate feasibility</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="grid-2">
+                            <div class="card" style="border-left: 4px solid #EF4444;">
+                                <div class="font-bold text-white mb-3">&#10060; Missing 3 Hard Problems</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div>1. <span class="text-white font-bold">Constraint Solving:</span> CP-SAT + Z3 SMT integration (18-24 months)</div>
+                                    <div>2. <span class="text-white font-bold">Evidence Tracking:</span> Bayesian confidence + provenance (18-24 months)</div>
+                                    <div>3. <span class="text-white font-bold">Version Control:</span> Git-like dependency diffs (12-18 months)</div>
+                                    <div class="text-yellow-400 mt-3">Rare expertise combination. 3-5 senior engineers required.</div>
+                                </div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #10B981;">
+                                <div class="font-bold text-white mb-3">&#9989; Our Unique Position</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div>â€¢ <span class="text-green-400">TessIR Standard:</span> Reference implementation, ecosystem lock-in</div>
+                                    <div>â€¢ <span class="text-green-400">Data Moat:</span> 100M validated dependencies by Year 3</div>
+                                    <div>â€¢ <span class="text-green-400">Domain Packs:</span> Community marketplace, cold-start problem for competitors</div>
+                                    <div class="text-yellow-400 mt-3">Starting 18 months later = facing exponentially wider gap</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 11: Go-to-Market
+            {
+                title: "Go-to-Market: Land and Expand Strategy",
+                content: `
+                    <div class="space-y-6">
+                        <div class="grid-3">
+                            <div class="card" style="background-color: rgba(59, 130, 246, 0.1); border: 2px solid #3B82F6;">
+                                <div class="text-3xl mb-3">&#128640;</div>
+                                <div class="font-bold text-blue-400 text-lg mb-3">Phase 1: Developer-Led (M1-12)</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div class="font-bold text-white">Tactics:</div>
+                                    <div>â€¢ Open-source TessIR spec</div>
+                                    <div>â€¢ GitHub Actions integration</div>
+                                    <div>â€¢ Technical content + conferences</div>
+                                    <div>â€¢ Developer advocates</div>
+                                    <div class="mt-3 text-yellow-400">Target: 50K users, 5K paid</div>
+                                    <div class="text-green-400 font-bold">ARR: $5M</div>
+                                </div>
+                            </div>
+                            <div class="card" style="background-color: rgba(168, 85, 247, 0.1); border: 2px solid #A855F7;">
+                                <div class="text-3xl mb-3">&#127970;</div>
+                                <div class="font-bold text-purple-400 text-lg mb-3">Phase 2: Team & Enterprise (M13-24)</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div class="font-bold text-white">Tactics:</div>
+                                    <div>â€¢ ServiceNow/Jira integrations</div>
+                                    <div>â€¢ Compliance packages</div>
+                                    <div>â€¢ Case studies + webinars</div>
+                                    <div>â€¢ Partner channel (SIs)</div>
+                                    <div class="mt-3 text-yellow-400">Target: 20K team, 50 enterprise</div>
+                                    <div class="text-green-400 font-bold">ARR: $25M</div>
+                                </div>
+                            </div>
+                            <div class="card" style="background-color: rgba(16, 185, 129, 0.1); border: 2px solid #10B981;">
+                                <div class="text-3xl mb-3">&#128200;</div>
+                                <div class="font-bold text-green-400 text-lg mb-3">Phase 3: Platform (Y3-5)</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div class="font-bold text-white">Tactics:</div>
+                                    <div>â€¢ Enterprise sales team (5-10 AEs)</div>
+                                    <div>â€¢ AWS/Microsoft/Google partnerships</div>
+                                    <div>â€¢ Custom Domain Pack services</div>
+                                    <div>â€¢ On-prem + air-gapped</div>
+                                    <div class="mt-3 text-yellow-400">Target: 250 enterprise, marketplace</div>
+                                    <div class="text-green-400 font-bold">ARR: $100M+</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(217, 119, 6, 0.2)); border: 2px solid #EAB308;">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-white mb-3">Why This Works</div>
+                                <div class="text-lg text-gray-300">
+                                    Software dev wedge = 6-month sales cycle â†’ Build trust and revenue â†’ Fund enterprise expansion (12-24 month cycles)
+                                </div>
+                                <div class="text-sm text-yellow-400 mt-3">Classic bottom-up SaaS playbook: Developers adopt â†’ Teams buy â†’ Enterprise scales</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 12: Revenue Trajectory
+            {
+                title: "Revenue Trajectory: $5M to $160M in 5 Years",
+                content: `
+                    <div class="space-y-6">
+                        <div class="card gradient-card">
+                            <div class="text-2xl font-bold text-white mb-6 text-center">Clear Path to Unicorn Status</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>ARR</th>
+                                        <th>Users</th>
+                                        <th>Enterprise</th>
+                                        <th>Milestone</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-bold">Year 1</td>
+                                        <td class="success text-lg">$5M</td>
+                                        <td>50K (5K paid)</td>
+                                        <td>10</td>
+                                        <td>Dev-led growth, TessIR established</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold">Year 2</td>
+                                        <td class="success text-lg">$25M</td>
+                                        <td>200K (20K paid)</td>
+                                        <td>50</td>
+                                        <td class="highlight">Series A ($15-25M)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold">Year 3</td>
+                                        <td class="success text-lg">$60M</td>
+                                        <td>400K (50K paid)</td>
+                                        <td>120</td>
+                                        <td class="highlight">Series B ($50-80M)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold">Year 4</td>
+                                        <td class="success text-lg">$100M</td>
+                                        <td>600K (100K paid)</td>
+                                        <td>180</td>
+                                        <td>EBITDA positive (15%)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold">Year 5</td>
+                                        <td class="success text-lg">$160M</td>
+                                        <td>900K</td>
+                                        <td>250</td>
+                                        <td>Category leader (25% EBITDA)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="grid-3">
+                            <div class="card" style="border-left: 4px solid #10B981;">
+                                <div class="font-bold text-green-400 mb-3">Key Metrics</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div>â€¢ 7% free-to-paid conversion</div>
+                                    <div>â€¢ 130% NRR (enterprise land-and-expand)</div>
+                                    <div>â€¢ 78% gross margin</div>
+                                    <div>â€¢ 3% monthly churn (dev), 5% annual (enterprise)</div>
+                                </div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #3B82F6;">
+                                <div class="font-bold text-blue-400 mb-3">Capital Efficiency</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div>â€¢ Seed: $2-5M (18mo runway)</div>
+                                    <div>â€¢ Series A: $15-25M (30mo runway)</div>
+                                    <div>â€¢ Series B: $50-80M (path to profitability)</div>
+                                    <div class="text-yellow-400 mt-2">Total: $70-110M to $100M ARR</div>
+                                </div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #8B5CF6;">
+                                <div class="font-bold text-purple-400 mb-3">Benchmarks</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div>Better than average SaaS capital efficiency</div>
+                                    <div>Comparable to: Snowflake, Datadog, Splunk growth rates</div>
+                                    <div class="text-yellow-400 mt-2">Conservative projections vs. market comps</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 13: Use of Funds
+            {
+                title: "Use of Funds: $2-5M Seed, 18-Month Plan",
+                content: `
+                    <div class="space-y-6">
+                        <div class="card gradient-card">
+                            <div class="text-2xl font-bold text-white mb-4 text-center">&#128176; The Ask: $2-5M Seed Round</div>
+                            <div class="text-center text-lg text-gray-300 mb-6">18-month runway to $5M ARR and Series A readiness</div>
+                            <div class="grid-2">
+                                <div class="text-center">
+                                    <div class="text-4xl font-bold text-green-400 mb-2">50%</div>
+                                    <div class="text-sm text-gray-300">Engineering</div>
+                                    <div class="text-xs text-gray-400 mt-1">$1-2.5M</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-4xl font-bold text-blue-400 mb-2">25%</div>
+                                    <div class="text-sm text-gray-300">Go-to-Market</div>
+                                    <div class="text-xs text-gray-400 mt-1">$500K-1.25M</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-4xl font-bold text-purple-400 mb-2">15%</div>
+                                    <div class="text-sm text-gray-300">Product & Domain Packs</div>
+                                    <div class="text-xs text-gray-400 mt-1">$300K-750K</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-4xl font-bold text-yellow-400 mb-2">10%</div>
+                                    <div class="text-sm text-gray-300">Operations & Infrastructure</div>
+                                    <div class="text-xs text-gray-400 mt-1">$200K-500K</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" style="border-left: 4px solid #EAB308;">
+                            <div class="font-bold text-yellow-400 text-lg mb-4">&#127919; 18-Month Milestones</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Technical</th>
+                                        <th>Growth</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="font-bold">Month 3</td>
+                                        <td>TessIR v1.0 spec complete, peer review</td>
+                                        <td>1K GitHub stars</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold">Month 6</td>
+                                        <td>GraphOps + Solver integration, Software Dev Pack Alpha</td>
+                                        <td>3 design partner agreements</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold">Month 12</td>
+                                        <td>Version Graph + Diff Engine, API + persistence live</td>
+                                        <td class="highlight">10K GitHub stars, 1K paid users, 5 enterprise customers</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="font-bold">Month 18</td>
+                                        <td>Production-ready, Software Dev Pack complete</td>
+                                        <td class="success">50K users (5K paid), $5M ARR â†’ Series A</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 14: Why Now
+            {
+                title: "Why Now: 18-24 Month Window Closing",
+                content: `
+                    <div class="space-y-6">
+                        <div class="card" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.2)); border: 2px solid #EF4444;">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-red-400 mb-3">&#9888; URGENT: Category-Defining Window</div>
+                                <div class="text-xl text-white">Wait 12 months â†’ Face funded competitors with closed standards â†’ Miss the moment</div>
+                            </div>
+                        </div>
+                        <div class="grid-3">
+                            <div class="card" style="border-left: 4px solid #F59E0B;">
+                                <div class="text-3xl mb-3">&#128337;</div>
+                                <div class="font-bold text-yellow-400 text-lg mb-3">1. Market Window (18-24 months)</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div class="font-bold text-white">No dominant player exists TODAY</div>
+                                    <div>â€¢ Kubernetes: 2014-2016 window to establish standard</div>
+                                    <div>â€¢ Docker: 2013-2015 window to own containers</div>
+                                    <div>â€¢ GitHub: 2008-2010 window to define git collaboration</div>
+                                    <div class="text-yellow-400 mt-3">TESSRYX Window: 2026-2028 to establish TessIR standard</div>
+                                    <div class="text-red-400">After 2028: Well-funded competitors enter, category fragments</div>
+                                </div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #3B82F6;">
+                                <div class="text-3xl mb-3">&#9889;</div>
+                                <div class="font-bold text-blue-400 text-lg mb-3">2. Technology Readiness (NOW)</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div class="font-bold text-white">Tools are production-ready:</div>
+                                    <div>â€¢ OR-Tools (Google): Free, scalable, well-documented</div>
+                                    <div>â€¢ Z3 (Microsoft): Production-grade SMT solver</div>
+                                    <div>â€¢ Neo4j: Graph databases at enterprise scale</div>
+                                    <div>â€¢ APIs: Every system has programmatic access</div>
+                                    <div class="text-yellow-400 mt-3">This wasn't possible 5 years ago</div>
+                                    <div class="text-gray-400">(Solvers were academic toys, graph DBs didn't scale)</div>
+                                </div>
+                            </div>
+                            <div class="card" style="border-left: 4px solid #10B981;">
+                                <div class="text-3xl mb-3">&#128200;</div>
+                                <div class="font-bold text-green-400 text-lg mb-3">3. Regulatory Tailwinds (ACCELERATING)</div>
+                                <div class="text-sm text-gray-300 space-y-2">
+                                    <div class="font-bold text-white">Compliance mandates driving demand:</div>
+                                    <div>â€¢ EU AI Act: Dependency documentation mandatory</div>
+                                    <div>â€¢ SOX / ISO 27001: Change management audit trails required</div>
+                                    <div>â€¢ NIST / CMMC: Government procurement compliance</div>
+                                    <div class="text-yellow-400 mt-3">$500B+ annual failure cost</div>
+                                    <div class="text-gray-400">Enterprises desperate for solutions</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card gradient-card">
+                            <div class="text-center space-y-3">
+                                <div class="text-2xl font-bold text-white">Three Timelines Converging</div>
+                                <div class="text-lg text-gray-300">Market gap + Technology readiness + Regulatory push = Perfect storm</div>
+                                <div class="text-xl text-yellow-400">The window is NOW. 18-24 months to establish leadership.</div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 16: Vision
+            {
+                title: "Vision: Building the AWS of Dependency Intelligence",
+                content: `
+                    <div class="space-y-6">
+                        <div class="card gradient-card">
+                            <div class="text-2xl font-bold text-white mb-4 text-center">&#127775; 5-Year Vision</div>
+                            <div class="grid-3 text-sm">
+                                <div class="text-center">
+                                    <div class="text-3xl mb-3">&#128640;</div>
+                                    <div class="font-bold text-blue-400 mb-2">Year 1-2</div>
+                                    <div class="text-gray-300">Establish TessIR as THE standard (like SQL for databases)</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-3xl mb-3">&#127760;</div>
+                                    <div class="font-bold text-purple-400 mb-2">Year 3-4</div>
+                                    <div class="text-gray-300">Ecosystem flourishes (community Domain Packs, integrations everywhere)</div>
+                                </div>
+                                <div class="text-center">
+                                    <div class="text-3xl mb-3">&#128293;</div>
+                                    <div class="font-bold text-green-400 mb-2">Year 5+</div>
+                                    <div class="text-gray-300">Platform economics (marketplace, data network effects, irreplaceable infrastructure)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" style="border-left: 4px solid #10B981;">
+                            <div class="font-bold text-green-400 text-xl mb-4">&#127919; What Success Looks Like</div>
+                            <div class="text-gray-300 space-y-3">
+                                <div class="text-lg">
+                                    <span class="text-white font-bold">"Every CI/CD pipeline runs TESSRYX verification"</span>
+                                    <span class="text-gray-400 text-sm ml-2">(like every app uses AWS)</span>
+                                </div>
+                                <div class="text-lg">
+                                    <span class="text-white font-bold">"Every dependency manager speaks TessIR"</span>
+                                    <span class="text-gray-400 text-sm ml-2">(like every database speaks SQL)</span>
+                                </div>
+                                <div class="text-lg">
+                                    <span class="text-white font-bold">"Every enterprise trusts TESSRYX evidence"</span>
+                                    <span class="text-gray-400 text-sm ml-2">(like every company uses GitHub)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid-3">
+                            <div class="card" style="background-color: rgba(59, 130, 246, 0.1); border: 1px solid #3B82F6;">
+                                <div class="font-bold text-blue-400 mb-3">&#128176; Exit Potential: Strategic Acquisition</div>
+                                <div class="text-sm text-gray-300">
+                                    AWS / Microsoft / Google acquire for infrastructure play
+                                    <div class="text-2xl font-bold text-blue-400 mt-3">$3-5B valuation</div>
+                                </div>
+                            </div>
+                            <div class="card" style="background-color: rgba(168, 85, 247, 0.1); border: 1px solid #A855F7;">
+                                <div class="font-bold text-purple-400 mb-3">&#128200; Exit Potential: IPO Path</div>
+                                <div class="text-sm text-gray-300">
+                                    Category leader at $100M+ ARR (like Snowflake $50B+, Datadog $40B+, Splunk $28B)
+                                    <div class="text-2xl font-bold text-purple-400 mt-3">$5-10B+ valuation</div>
+                                </div>
+                            </div>
+                            <div class="card" style="background-color: rgba(16, 185, 129, 0.1); border: 1px solid #10B981;">
+                                <div class="font-bold text-green-400 mb-3">&#128640; Exit Potential: Platform Dominance</div>
+                                <div class="text-sm text-gray-300">
+                                    Network effects make us indispensable (like Salesforce, ServiceNow)
+                                    <div class="text-2xl font-bold text-green-400 mt-3">$10B+ valuation</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(217, 119, 6, 0.2)); border: 2px solid #EAB308;">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-white mb-3">The Opportunity</div>
+                                <div class="text-lg text-gray-300">
+                                    Build infrastructure that becomes irreplaceable. Capture cognitive monopoly on dependency intelligence.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // Slide 17: The Ask
+            {
+                title: "The Ask: Let's Build This Together",
+                content: `
+                    <div class="space-y-6">
+                        <div class="card gradient-card">
+                            <div class="text-3xl font-bold text-white mb-6 text-center">&#128640; Investment Opportunity</div>
+                            <div class="grid-2">
+                                <div>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <div class="text-sm text-gray-400 mb-1">Amount</div>
+                                            <div class="text-3xl font-bold text-green-400">$2-5M Seed Round</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm text-gray-400 mb-1">Use</div>
+                                            <div class="text-lg text-white">18-month runway to $5M ARR and Series A</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm text-gray-400 mb-1">Target Close</div>
+                                            <div class="text-lg text-yellow-400">Q1 2026</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border-l-2 border-gray-700 pl-6">
+                                    <div class="text-xl font-bold text-white mb-4">What You Get</div>
+                                    <div class="text-sm text-gray-300 space-y-2">
+                                        <div>&#9989; Ground floor on category-defining company</div>
+                                        <div>&#9989; 18-24 month first-mover advantage window</div>
+                                        <div>&#9989; Compounding technical and data moats</div>
+                                        <div>&#9989; Experienced founder with proven track record</div>
+                                        <div>&#9989; Clear path to $100M ARR in 5 years</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" style="border-left: 4px solid #3B82F6;">
+                            <div class="font-bold text-blue-400 text-xl mb-4">&#128203; Next Steps</div>
+                            <div class="grid-2 text-sm text-gray-300">
+                                <div class="space-y-2">
+                                    <div><span class="text-white font-bold">1. Technical Deep Dive</span></div>
+                                    <div class="text-xs text-gray-400 ml-4">Architecture walkthrough, TessIR spec review, live prototype demo</div>
+                                    <div><span class="text-white font-bold">2. Design Partner Introductions</span></div>
+                                    <div class="text-xs text-gray-400 ml-4">Early enterprise customers, validation meetings</div>
+                                </div>
+                                <div class="space-y-2">
+                                    <div><span class="text-white font-bold">3. Financial Model Review</span></div>
+                                    <div class="text-xs text-gray-400 ml-4">Unit economics, projections, sensitivity analysis</div>
+                                    <div><span class="text-white font-bold">4. Term Sheet Negotiation</span></div>
+                                    <div class="text-xs text-gray-400 ml-4">Investment terms, board seats, milestones</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2)); border: 2px solid #3B82F6;">
+                            <div class="text-center space-y-4">
+                                <div class="text-2xl font-bold text-white">Contact</div>
+                                <div class="text-lg text-gray-300">
+                                    <div class="mb-2"><span class="text-blue-400 font-bold">David Kirsch, Founder & CEO</span></div>
+                                    <div class="text-blue-300">dk.dkes@hotmail.com</div>
+                                </div>
+                                <div class="text-3xl font-bold text-yellow-400 mt-6 mb-4">
+                                    "Dependencies are invisible until they break."
+                                </div>
+                                <div class="text-2xl font-bold text-white">
+                                    Let's make them visible before they break.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }
+        ];
+
+        function renderSlide(index) {
+            const slide = slides[index];
+            const contentDiv = document.getElementById('slideContent');
+            
+            let html = '<div class="slide-inner">';
+            
+            if (slide.title) {
+                html += `<div class="slide-title">${slide.title}</div>`;
+            }
+            
+            html += slide.content;
+            html += '</div>';
+            
+            contentDiv.innerHTML = html;
+            
+            // Update navigation
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === slides.length - 1;
+            document.getElementById('slideNumber').textContent = `Slide ${index + 1} of ${slides.length}`;
+            
+            // Update dots
+            updateDots(index);
+        }
+
+        function updateDots(activeIndex) {
+            const dotsContainer = document.getElementById('slideDots');
+            dotsContainer.innerHTML = '';
+            
+            slides.forEach((_, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'slide-dot' + (index === activeIndex ? ' active' : '');
+                dot.onclick = () => goToSlide(index);
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                renderSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                renderSlide(currentSlide);
+            }
+        }
+
+        function goToSlide(index) {
+            currentSlide = index;
+            renderSlide(currentSlide);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        // Initialize
+        renderSlide(0);
+    </script>
+</body>
+</html>
