@@ -510,14 +510,341 @@ interface Evidence {
 }
 ```
 
-### 7.4 Confidence Propagation
+### 7.4 Confidence Propagation Algorithm
 
-**Rules for confidence through chains:**
-- Single path: Use minimum confidence in chain
-- Multiple paths: Use maximum confidence across paths
-- Conflicts: Reduce confidence based on disagreement
+Confidence scores propagate through dependency chains using probabilistic reasoning. This algorithm determines how certain we can be about transitive dependencies.
 
-*Note: Detailed propagation algorithm TBD in implementation phase*
+#### 7.4.1 Core Principles
+
+**Fundamental Rule:**
+> Confidence in a chain cannot exceed the confidence of its weakest link.
+
+**Mathematical Foundation:**
+Treat confidence as probability of correctness. Use probability theory for propagation.
+
+#### 7.4.2 Single Path Propagation
+
+For a simple chain A → B → C:
+
+```
+conf(A → C) = conf(A → B) × conf(B → C)
+```
+
+**Rationale:** Both links must be correct for the transitive dependency to hold (joint probability).
+
+**Example:**
+```
+A requires B (confidence: 0.9)
+B requires C (confidence: 0.8)
+Therefore: A requires C (confidence: 0.9 × 0.8 = 0.72)
+```
+
+**General Formula for N-hop chain:**
+```
+conf(A → Z) = ∏(i=1 to n) conf(link_i)
+```
+
+#### 7.4.3 Multiple Paths (Parallel Evidence)
+
+When multiple independent paths exist A → C:
+
+```
+Path 1: A → B → C (confidence: p₁)
+Path 2: A → D → C (confidence: p₂)
+
+conf(A → C) = 1 - (1 - p₁)(1 - p₂)
+```
+
+**Rationale:** At least one path must be correct (probability of union of independent events).
+
+**Example:**
+```
+Path 1: A → B → C (conf: 0.6)
+Path 2: A → D → C (conf: 0.7)
+
+Combined: 1 - (1 - 0.6)(1 - 0.7) = 1 - (0.4)(0.3) = 1 - 0.12 = 0.88
+```
+
+**General Formula for M paths:**
+```
+conf(A → C) = 1 - ∏(i=1 to m) (1 - p_i)
+```
+
+**Important:** Paths must be truly independent. If they share links, use conditional probability.
+
+#### 7.4.4 Conflicting Evidence
+
+When multiple sources assert contradictory relations:
+
+```typescript
+interface ConflictResolution {
+  relation: Relation;
+  sources: Provenance[];
+  resolution_strategy: "weighted_vote" | "expert_priority" | "recency" | "evidence_count";
+}
+```
+
+**Weighted Vote Strategy (Default):**
+```
+conf_final = (Σ conf_i × weight_i) / (Σ weight_i)
+
+where weight_i = {
+  1.0  if source = MEASUREMENT
+  0.8  if source = DOC_IMPORT
+  0.6  if source = COMMUNITY
+  0.4  if source = INFERRED
+  0.3  if source = USER_INPUT (unvalidated)
+}
+```
+
+**Disagreement Penalty:**
+When confidence scores differ significantly (σ > 0.3), apply penalty:
+
+```
+disagreement_penalty = 1 - (σ / σ_max)
+conf_final = conf_final × disagreement_penalty
+
+where:
+  σ = standard deviation of confidence scores
+  σ_max = 0.5 (maximum acceptable deviation)
+```
+
+**Example:**
+```
+Source A: confidence 0.9 (MEASUREMENT)
+Source B: confidence 0.3 (USER_INPUT)
+Source C: confidence 0.8 (DOC_IMPORT)
+
+Weighted average:
+  (0.9 × 1.0 + 0.3 × 0.3 + 0.8 × 0.8) / (1.0 + 0.3 + 0.8)
+  = (0.9 + 0.09 + 0.64) / 2.1
+  = 1.63 / 2.1
+  = 0.776
+
+Standard deviation: σ ≈ 0.31
+Penalty: 1 - (0.31 / 0.5) = 0.38
+Final: 0.776 × 0.38 = 0.295
+
+→ Low confidence due to high disagreement
+```
+
+#### 7.4.5 Time Decay
+
+Confidence degrades over time for dynamic domains:
+
+```
+conf_current = conf_original × e^(-λt)
+
+where:
+  λ = decay rate (domain-specific)
+  t = time elapsed since last validation
+```
+
+**Domain-Specific Decay Rates:**
+```typescript
+const DECAY_RATES = {
+  software_dependencies: 0.1,   // Fast (monthly npm updates)
+  it_infrastructure: 0.05,      // Medium (quarterly changes)
+  physical_components: 0.01,    // Slow (annual wear)
+  regulations: 0.005,           // Very slow (multi-year cycles)
+  mathematical_proofs: 0.0      // No decay (eternal truth)
+};
+```
+
+**Example:**
+```
+Original: conf = 0.9 (software dependency)
+After 6 months: conf = 0.9 × e^(-0.1 × 6) = 0.9 × e^(-0.6) ≈ 0.9 × 0.549 = 0.494
+
+→ Suggests re-validation needed
+```
+
+#### 7.4.6 Evidence Aggregation
+
+When multiple pieces of evidence support the same relation:
+
+```
+conf_aggregate = base_conf + Σ(evidence_i.confidence_contribution × (1 - base_conf))
+
+Capped at: min(conf_aggregate, 0.95)
+```
+
+**Rationale:** Each piece of evidence fills some portion of remaining uncertainty, but perfect certainty (1.0) is unattainable.
+
+**Example:**
+```
+Base: conf = 0.6
+
+Evidence 1: contribution = 0.2
+  conf = 0.6 + 0.2 × (1 - 0.6) = 0.6 + 0.08 = 0.68
+
+Evidence 2: contribution = 0.15
+  conf = 0.68 + 0.15 × (1 - 0.68) = 0.68 + 0.048 = 0.728
+
+Evidence 3: contribution = 0.3
+  conf = 0.728 + 0.3 × (1 - 0.728) = 0.728 + 0.082 = 0.810
+
+Final: 0.81 (capped at 0.95)
+```
+
+#### 7.4.7 Validation Updates
+
+When a relation is validated or invalidated:
+
+**Validation Success:**
+```
+conf_new = conf_old + (1 - conf_old) × validation_strength
+
+where validation_strength ∈ [0.1, 0.5] depending on method
+```
+
+**Validation Failure:**
+```
+conf_new = conf_old × (1 - failure_impact)
+
+where failure_impact ∈ [0.3, 0.9] depending on severity
+```
+
+**Validation Methods & Strengths:**
+```typescript
+const VALIDATION_STRENGTH = {
+  automated_test_pass: 0.3,
+  manual_inspection: 0.2,
+  production_observation: 0.4,
+  formal_proof: 0.5
+};
+
+const FAILURE_IMPACT = {
+  intermittent_failure: 0.3,
+  consistent_failure: 0.7,
+  catastrophic_failure: 0.9
+};
+```
+
+#### 7.4.8 Community Consensus (G-Score Model)
+
+When crowd-sourced data available, use Gregore's G-Score approach:
+
+```
+G-Score = (votes_positive - votes_negative) / total_votes
+
+conf_community = 0.5 + (G-Score × 0.4)
+
+Final confidence:
+  conf_final = max(conf_provenance, conf_community)
+```
+
+**Example:**
+```
+Provenance confidence: 0.6
+Community votes: 450 positive, 50 negative
+
+G-Score = (450 - 50) / 500 = 0.8
+conf_community = 0.5 + (0.8 × 0.4) = 0.82
+
+Final: max(0.6, 0.82) = 0.82
+```
+
+#### 7.4.9 Uncertainty Bounds
+
+Express confidence with uncertainty bounds:
+
+```typescript
+interface ConfidenceWithBounds {
+  point_estimate: number;      // Central value
+  lower_bound: number;         // 5th percentile
+  upper_bound: number;         // 95th percentile
+  method: "bootstrap" | "bayesian" | "frequentist";
+}
+```
+
+**Use Case:** When making critical decisions, consider worst-case (lower bound).
+
+#### 7.4.10 Implementation Guidelines
+
+**Efficient Computation:**
+```typescript
+// Cache propagated confidence to avoid recomputation
+interface ConfidenceCache {
+  key: string;  // "entity_a:entity_b"
+  confidence: number;
+  computed_at: DateTime;
+  invalidate_after: Duration;
+}
+```
+
+**Incremental Updates:**
+When a single relation's confidence changes, only recompute affected paths (not entire graph).
+
+**Complexity:**
+- Single path: O(n) for n hops
+- Multiple paths: O(m × n) for m paths of length n
+- Full graph: O(V × E) worst case, but cache heavily
+
+**Thresholds:**
+```typescript
+const CONFIDENCE_THRESHOLDS = {
+  HIGH: 0.8,        // Trust for critical decisions
+  MEDIUM: 0.6,      // Adequate for normal operations
+  LOW: 0.4,         // Requires validation
+  UNTRUSTWORTHY: 0.2  // Do not use
+};
+```
+
+#### 7.4.11 Example: Software Dependency Chain
+
+```typescript
+// Package dependency chain
+const chain = [
+  { from: "app", to: "react-router", conf: 0.95 },      // package.json
+  { from: "react-router", to: "react", conf: 0.90 },    // peerDep
+  { from: "react", to: "scheduler", conf: 0.98 }        // direct dep
+];
+
+// Single path confidence
+const conf_transitive = 0.95 × 0.90 × 0.98 = 0.838
+
+// With time decay (6 months, λ=0.1)
+const conf_aged = 0.838 × Math.exp(-0.1 × 6) = 0.838 × 0.549 = 0.460
+
+// Decision: Re-validate needed (below 0.6 threshold)
+```
+
+#### 7.4.12 Advanced: Bayesian Updates
+
+For sophisticated implementations, use Bayesian inference:
+
+```
+P(dependency | evidence) = P(evidence | dependency) × P(dependency) / P(evidence)
+
+Prior: Initial confidence from provenance
+Likelihood: Strength of new evidence
+Posterior: Updated confidence
+```
+
+**Use Cases:**
+- Iterative validation cycles
+- Learning from false positives/negatives
+- Adapting to domain-specific patterns
+
+*Note: Full Bayesian treatment deferred to v1.1+ due to complexity*
+
+---
+
+### 7.5 Confidence Visualization
+
+**Recommended UI Representations:**
+- 0.9-1.0: Solid green line
+- 0.7-0.9: Dashed green line
+- 0.5-0.7: Yellow line with warning icon
+- 0.3-0.5: Orange line with validation prompt
+- 0.0-0.3: Red line with error indicator
+
+**Textual Labels:**
+- "High confidence (0.85)"
+- "Moderate confidence (0.67) - consider validation"
+- "Low confidence (0.42) - validation required"
+- "Unreliable (0.18) - do not use"
 
 ---
 
