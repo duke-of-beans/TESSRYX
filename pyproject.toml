@@ -1,0 +1,197 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tessryx"
+version = "0.1.0"
+description = "Universal Dependency Intelligence Infrastructure"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "MIT"}
+authors = [
+    {name = "David Kirsch", email = "david@tessryx.com"}
+]
+keywords = ["dependencies", "constraints", "solver", "graph", "verification"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "pydantic>=2.5.0",
+    "networkx>=3.2",
+    "ortools>=9.8",
+    "z3-solver>=4.12",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "fastapi>=0.109",
+    "uvicorn[standard]>=0.27",
+    "python-dateutil>=2.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "pytest-asyncio>=0.23",
+    "hypothesis>=6.96",
+    "mypy>=1.8",
+    "black>=24.1",
+    "ruff>=0.1",
+    "ipython>=8.20",
+]
+
+[project.urls]
+Homepage = "https://github.com/duke-of-beans/TESSRYX"
+Documentation = "https://github.com/duke-of-beans/TESSRYX/tree/main/docs"
+Repository = "https://github.com/duke-of-beans/TESSRYX"
+Issues = "https://github.com/duke-of-beans/TESSRYX/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+tessryx = ["py.typed"]
+
+# ============================================================================
+# Testing Configuration
+# ============================================================================
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=tessryx",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "unit: Unit tests (fast, isolated)",
+    "integration: Integration tests (slower, external dependencies)",
+    "slow: Slow tests (>1 second)",
+]
+
+[tool.coverage.run]
+source = ["src/tessryx"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+# ============================================================================
+# Type Checking Configuration
+# ============================================================================
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+show_error_codes = true
+show_error_context = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = [
+    "ortools.*",
+    "z3.*",
+    "networkx.*",
+]
+ignore_missing_imports = true
+
+# ============================================================================
+# Code Formatting Configuration
+# ============================================================================
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+# ============================================================================
+# Linting Configuration
+# ============================================================================
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C",   # flake8-comprehensions
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "ANN", # flake8-annotations
+    "S",   # flake8-bandit
+    "T20", # flake8-print
+    "PT",  # flake8-pytest-style
+    "RET", # flake8-return
+    "SIM", # flake8-simplify
+    "ERA", # eradicate
+]
+ignore = [
+    "ANN101", # Missing type annotation for self
+    "ANN102", # Missing type annotation for cls
+    "S101",   # Use of assert (allowed in tests)
+]
+
+[tool.ruff.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",   # asserts allowed in tests
+    "ANN",    # type hints not required in tests
+    "T20",    # print allowed in tests
+]
+
+[tool.ruff.isort]
+known-first-party = ["tessryx"]
