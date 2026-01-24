@@ -1,275 +1,582 @@
-"""Graph operations for TessIR dependency analysis.
+﻿"""Graph Operations - Core graph algorithms for dependency analysis.
 
-Provides algorithms for analyzing dependency graphs including:
-- Strongly Connected Component (SCC) detection via Tarjan's algorithm
-- Topological sorting via Kahn's algorithm
-- Blast radius calculation
-- Cycle detection
+This module implements fundamental graph algorithms that power TESSRYX's
+dependency intelligence:
+
+- **Strongly Connected Components (SCC):** Tarjan's algorithm for cycle detection
+- **Topological Sort:** DAG ordering for build/deployment sequences
+- **Reachability:** Fast path existence queries
+- **Dependency Impact (S02 from EOS):** Blast radius, critical path analysis
+
+All algorithms operate on the TessIR graph structure (Entity + Relation primitives).
+
+Design Principles:
+- Efficient O(V+E) algorithms where possible
+- Immutable results (return new data, don't modify graph)
+- Comprehensive error handling
+- NetworkX integration for complex queries
+- Property-based testing for correctness
 """
 
 from collections import defaultdict, deque
-from typing import TypeAlias
+from typing import Any
+from uuid import UUID
 
-from ..core.relation import Relation
-from ..core.types import EntityID
+import networkx as nx
 
-# Type aliases for clarity
-GraphDict: TypeAlias = dict[EntityID, list[EntityID]]
-SCCList: TypeAlias = list[list[EntityID]]
+from tessryx.core.entity import Entity
+from tessryx.core.relation import Relation
+from tessryx.core.types import EntityID
 
 
-class GraphOps:
-    """Graph analysis operations for dependency management.
+# ============================================================================
+# GRAPH REPRESENTATION
+# ============================================================================
+
+
+class DependencyGraph:
+    """In-memory representation of the dependency graph.
     
-    All algorithms are deterministic and produce consistent results for
-    the same input graph structure.
+    Wraps NetworkX DiGraph with TessIR-specific operations and guarantees.
+    
+    The graph stores:
+    - Nodes: Entity objects (keyed by EntityID)
+    - Edges: Relation objects (with metadata)
+    
+    Thread-safe for read operations. Mutations return new graphs.
+    
+    Examples:
+        >>> graph = DependencyGraph()
+        >>> 
+        >>> # Add entities
+        >>> entity1 = Entity(id=uuid4(), type="package", name="react")
+        >>> entity2 = Entity(id=uuid4(), type="package", name="react-dom")
+        >>> graph = graph.add_entity(entity1).add_entity(entity2)
+        >>> 
+        >>> # Add relation
+        >>> relation = Relation(
+        ...     id=uuid4(),
+        ...     type="depends_on",
+        ...     from_entity_id=entity2.id,
+        ...     to_entity_id=entity1.id,
+        ... )
+        >>> graph = graph.add_relation(relation)
+        >>> 
+        >>> # Query
+        >>> deps = graph.get_dependencies(entity2.id)
+        >>> len(deps)
+        1
     """
 
-    @staticmethod
-    def build_graph(relations: list[Relation]) -> GraphDict:
-        """Build adjacency list from relations.
+    def __init__(self, graph: nx.DiGraph | None = None) -> None:
+        """Initialize dependency graph.
         
         Args:
-            relations: List of Relation objects
-            
-        Returns:
-            Dictionary mapping entity IDs to lists of dependent entity IDs
+            graph: Optional NetworkX DiGraph to wrap (for internal use)
         """
-        graph: GraphDict = defaultdict(list)
-        for rel in relations:
-            graph[rel.from_entity].append(rel.to_entity)
-        return dict(graph)
+        self._graph = graph if graph is not None else nx.DiGraph()
 
-    @staticmethod
-    def tarjan_scc(graph: GraphDict) -> SCCList:
-        """Find strongly connected components using Tarjan's algorithm.
-        
-        Time complexity: O(V + E) where V is vertices and E is edges
-        Space complexity: O(V) for the recursion stack and tracking data
-        
-        A strongly connected component is a maximal set of vertices where
-        every vertex is reachable from every other vertex in the set.
+    def add_entity(self, entity: Entity) -> "DependencyGraph":
+        """Add an entity to the graph (immutable operation).
         
         Args:
-            graph: Adjacency list representation of the graph
+            entity: Entity to add
             
         Returns:
-            List of SCCs, where each SCC is a list of entity IDs.
-            SCCs are returned in reverse topological order.
+            New DependencyGraph with entity added
+            
+        Raises:
+            ValueError: If entity with same ID already exists
         """
-        index_counter = [0]
-        stack: list[EntityID] = []
-        lowlinks: dict[EntityID, int] = {}
-        index: dict[EntityID, int] = {}
-        on_stack: dict[EntityID, bool] = defaultdict(bool)
-        sccs: SCCList = []
-
-        def strongconnect(node: EntityID) -> None:
-            # Set the depth index for this node to the smallest unused index
-            index[node] = index_counter[0]
-            lowlinks[node] = index_counter[0]
-            index_counter[0] += 1
-            stack.append(node)
-            on_stack[node] = True
-
-            # Consider successors of node
-            for successor in graph.get(node, []):
-                if successor not in index:
-                    # Successor has not yet been visited; recurse on it
-                    strongconnect(successor)
-                    lowlinks[node] = min(lowlinks[node], lowlinks[successor])
-                elif on_stack[successor]:
-                    # Successor is in stack and hence in the current SCC
-                    lowlinks[node] = min(lowlinks[node], index[successor])
-
-            # If node is a root node, pop the stack and generate an SCC
-            if lowlinks[node] == index[node]:
-                component: list[EntityID] = []
-                while True:
-                    successor = stack.pop()
-                    on_stack[successor] = False
-                    component.append(successor)
-                    if successor == node:
-                        break
-                sccs.append(component)
-
-        # Find all nodes (including isolated ones)
-        all_nodes = set(graph.keys())
-        for successors in graph.values():
-            all_nodes.update(successors)
-
-        # Process all nodes
-        for node in all_nodes:
-            if node not in index:
-                strongconnect(node)
-
-        return sccs
-
-    @staticmethod
-    def detect_cycles(graph: GraphDict) -> list[list[EntityID]]:
-        """Detect all cycles in the graph.
+        if entity.id in self._graph:
+            raise ValueError(f"Entity {entity.id} already exists in graph")
         
-        A cycle is a strongly connected component with more than one node,
-        or a single node with a self-loop.
+        # Create new graph with entity
+        new_graph = self._graph.copy()
+        new_graph.add_node(entity.id, entity=entity)
+        
+        return DependencyGraph(new_graph)
+
+    def add_relation(self, relation: Relation) -> "DependencyGraph":
+        """Add a relation (edge) to the graph (immutable operation).
         
         Args:
-            graph: Adjacency list representation of the graph
+            relation: Relation to add
             
         Returns:
-            List of cycles, where each cycle is a list of entity IDs
+            New DependencyGraph with relation added
+            
+        Raises:
+            ValueError: If source or target entity doesn't exist
+            ValueError: If relation already exists
         """
-        sccs = GraphOps.tarjan_scc(graph)
-        cycles = []
+        if relation.from_entity not in self._graph:
+            raise ValueError(f"Source entity {relation.from_entity} not in graph")
+        if relation.to_entity not in self._graph:
+            raise ValueError(f"Target entity {relation.to_entity} not in graph")
         
-        for scc in sccs:
-            # Multi-node SCC is always a cycle
-            if len(scc) > 1:
-                cycles.append(scc)
-            # Single-node SCC with self-loop is a cycle
-            elif len(scc) == 1 and scc[0] in graph.get(scc[0], []):
-                cycles.append(scc)
+        # Check if edge already exists
+        if self._graph.has_edge(relation.from_entity, relation.to_entity):
+            raise ValueError(
+                f"Relation from {relation.from_entity} to {relation.to_entity} "
+                "already exists"
+            )
         
-        return cycles
+        # Create new graph with relation
+        new_graph = self._graph.copy()
+        new_graph.add_edge(
+            relation.from_entity,
+            relation.to_entity,
+            relation=relation,
+        )
+        
+        return DependencyGraph(new_graph)
 
-    @staticmethod
-    def topological_sort(graph: GraphDict) -> list[EntityID] | None:
-        """Perform topological sort using Kahn's algorithm.
-        
-        Time complexity: O(V + E)
-        Space complexity: O(V)
+    def get_entity(self, entity_id: EntityID) -> Entity | None:
+        """Get entity by ID.
         
         Args:
-            graph: Adjacency list representation of the graph
+            entity_id: Entity ID to retrieve
             
         Returns:
-            List of entity IDs in topological order, or None if graph has cycles
+            Entity if found, None otherwise
         """
-        # Calculate in-degrees
-        in_degree: dict[EntityID, int] = defaultdict(int)
-        all_nodes = set(graph.keys())
-        for successors in graph.values():
-            all_nodes.update(successors)
+        if entity_id not in self._graph:
+            return None
+        return self._graph.nodes[entity_id]["entity"]
+
+    def get_relation(
+        self,
+        from_entity_id: EntityID,
+        to_entity_id: EntityID,
+    ) -> Relation | None:
+        """Get relation between two entities.
         
-        for node in all_nodes:
-            if node not in in_degree:
-                in_degree[node] = 0
+        Args:
+            from_entity_id: Source entity ID
+            to_entity_id: Target entity ID
+            
+        Returns:
+            Relation if edge exists, None otherwise
+        """
+        if not self._graph.has_edge(from_entity_id, to_entity_id):
+            return None
+        return self._graph.edges[from_entity_id, to_entity_id]["relation"]
+
+    def get_dependencies(self, entity_id: EntityID) -> list[Entity]:
+        """Get all direct dependencies of an entity (outgoing edges).
         
-        for successors in graph.values():
-            for successor in successors:
-                in_degree[successor] += 1
+        Args:
+            entity_id: Entity to get dependencies for
+            
+        Returns:
+            List of entities that this entity depends on
+        """
+        if entity_id not in self._graph:
+            return []
+        
+        # Successors = nodes this entity points to (dependencies)
+        dep_ids = list(self._graph.successors(entity_id))
+        return [self.get_entity(dep_id) for dep_id in dep_ids if self.get_entity(dep_id)]
 
-        # Queue all nodes with in-degree 0
-        queue: deque[EntityID] = deque([node for node in all_nodes if in_degree[node] == 0])
-        result: list[EntityID] = []
+    def get_dependents(self, entity_id: EntityID) -> list[Entity]:
+        """Get all direct dependents of an entity (incoming edges).
+        
+        Args:
+            entity_id: Entity to get dependents for
+            
+        Returns:
+            List of entities that depend on this entity
+        """
+        if entity_id not in self._graph:
+            return []
+        
+        # Predecessors = nodes pointing to this entity (dependents)
+        dependent_ids = list(self._graph.predecessors(entity_id))
+        return [self.get_entity(dep_id) for dep_id in dependent_ids if self.get_entity(dep_id)]
 
-        while queue:
-            node = queue.popleft()
-            result.append(node)
+    def node_count(self) -> int:
+        """Get number of entities in graph."""
+        return self._graph.number_of_nodes()
 
-            # Reduce in-degree for all successors
-            for successor in graph.get(node, []):
-                in_degree[successor] -= 1
-                if in_degree[successor] == 0:
-                    queue.append(successor)
+    def edge_count(self) -> int:
+        """Get number of relations in graph."""
+        return self._graph.number_of_edges()
 
-        # If we processed all nodes, no cycle exists
-        if len(result) == len(all_nodes):
-            return result
+    def to_networkx(self) -> nx.DiGraph:
+        """Get underlying NetworkX graph (for advanced queries).
+        
+        Returns:
+            NetworkX DiGraph (read-only copy)
+        """
+        return self._graph.copy()
+
+
+# ============================================================================
+# STRONGLY CONNECTED COMPONENTS (Tarjan's Algorithm)
+# ============================================================================
+
+
+def find_strongly_connected_components(graph: DependencyGraph) -> list[list[EntityID]]:
+    """Find all strongly connected components using Tarjan's algorithm.
+    
+    A strongly connected component (SCC) is a maximal set of nodes where
+    every node is reachable from every other node. In dependency graphs,
+    SCCs represent circular dependencies.
+    
+    Complexity: O(V + E) where V = nodes, E = edges
+    
+    Args:
+        graph: Dependency graph to analyze
+        
+    Returns:
+        List of SCCs, each SCC is a list of entity IDs
+        Sorted by size (largest SCCs first)
+        
+    Examples:
+        >>> # Graph with circular dependency: A -> B -> C -> A
+        >>> sccs = find_strongly_connected_components(graph)
+        >>> len(sccs)
+        1
+        >>> len(sccs[0])  # All three nodes in one SCC
+        3
+    """
+    nx_graph = graph.to_networkx()
+    
+    # Use NetworkX's optimized Tarjan implementation
+    sccs = list(nx.strongly_connected_components(nx_graph))
+    
+    # Convert sets to lists and sort by size (largest first)
+    result = [list(scc) for scc in sccs]
+    result.sort(key=len, reverse=True)
+    
+    return result
+
+
+def find_circular_dependencies(graph: DependencyGraph) -> list[list[EntityID]]:
+    """Find all circular dependency chains in the graph.
+    
+    Returns only SCCs with size > 1 (actual cycles).
+    Single-node SCCs are filtered out.
+    
+    Args:
+        graph: Dependency graph to analyze
+        
+    Returns:
+        List of circular dependency chains
+        Each chain is a list of entity IDs forming a cycle
+        
+    Examples:
+        >>> cycles = find_circular_dependencies(graph)
+        >>> for cycle in cycles:
+        ...     print(f"Circular dependency: {' -> '.join(str(id) for id in cycle)}")
+    """
+    sccs = find_strongly_connected_components(graph)
+    
+    # Filter to only SCCs with > 1 node (actual cycles)
+    cycles = [scc for scc in sccs if len(scc) > 1]
+    
+    return cycles
+
+
+# ============================================================================
+# TOPOLOGICAL SORT
+# ============================================================================
+
+
+class CycleDetectedError(Exception):
+    """Raised when topological sort is attempted on a graph with cycles."""
+    
+    def __init__(self, cycle: list[EntityID]) -> None:
+        """Initialize with the detected cycle.
+        
+        Args:
+            cycle: List of entity IDs forming the cycle
+        """
+        self.cycle = cycle
+        super().__init__(f"Cycle detected: {' -> '.join(str(id) for id in cycle)}")
+
+
+def topological_sort(graph: DependencyGraph) -> list[EntityID]:
+    """Perform topological sort on the dependency graph.
+    
+    Returns a linear ordering where dependencies come before dependents.
+    Useful for:
+    - Build order determination
+    - Deployment sequencing
+    - Install order calculation
+    
+    Complexity: O(V + E)
+    
+    Args:
+        graph: Dependency graph to sort (must be a DAG)
+        
+    Returns:
+        List of entity IDs in topological order
+        
+    Raises:
+        CycleDetectedError: If graph contains cycles (use find_circular_dependencies first)
+        
+    Examples:
+        >>> # A depends on B, B depends on C
+        >>> # Topological order: [C, B, A]
+        >>> order = topological_sort(graph)
+        >>> # C must be built before B, B before A
+    """
+    nx_graph = graph.to_networkx()
+    
+    try:
+        # Use NetworkX's optimized topological sort
+        # NetworkX returns dependents-first order, but we want dependencies-first (build order)
+        # So we reverse the result
+        order = list(reversed(list(nx.topological_sort(nx_graph))))
+        return order
+    except nx.NetworkXError:
+        # Cycle detected - find it and report
+        cycles = find_circular_dependencies(graph)
+        if cycles:
+            raise CycleDetectedError(cycles[0])
         else:
-            return None  # Cycle detected
+            # Shouldn't happen, but handle gracefully
+            raise CycleDetectedError([])
 
-    @staticmethod
-    def blast_radius(
-        graph: GraphDict,
-        entity_id: EntityID,
-        max_depth: int | None = None
-    ) -> set[EntityID]:
-        """Calculate blast radius: all entities affected by changes to entity_id.
-        
-        Performs breadth-first search to find all downstream dependencies.
-        
-        Args:
-            graph: Adjacency list representation of the graph
-            entity_id: ID of the entity to analyze
-            max_depth: Optional maximum depth to traverse (None for unlimited)
-            
-        Returns:
-            Set of entity IDs that depend (directly or indirectly) on entity_id
-        """
-        if entity_id not in graph and entity_id not in set().union(*graph.values()):
-            # Entity doesn't exist in graph
-            return set()
 
-        visited: set[EntityID] = set()
-        queue: deque[tuple[EntityID, int]] = deque([(entity_id, 0)])
-        
-        while queue:
-            current, depth = queue.popleft()
-            
-            if current in visited:
-                continue
-            
-            visited.add(current)
-            
-            # Stop if we've reached max depth
-            if max_depth is not None and depth >= max_depth:
-                continue
-            
-            # Add all successors to queue
-            for successor in graph.get(current, []):
-                if successor not in visited:
-                    queue.append((successor, depth + 1))
-        
-        # Remove the original entity from the result
-        visited.discard(entity_id)
-        return visited
+# ============================================================================
+# REACHABILITY QUERIES
+# ============================================================================
 
-    @staticmethod
-    def reverse_graph(graph: GraphDict) -> GraphDict:
-        """Create reversed graph (transpose).
-        
-        Args:
-            graph: Adjacency list representation of the graph
-            
-        Returns:
-            Reversed graph where all edges are flipped
-        """
-        reversed_graph: GraphDict = defaultdict(list)
-        
-        # Get all nodes
-        all_nodes = set(graph.keys())
-        for successors in graph.values():
-            all_nodes.update(successors)
-        
-        # Initialize all nodes in reversed graph
-        for node in all_nodes:
-            if node not in reversed_graph:
-                reversed_graph[node] = []
-        
-        # Reverse all edges
-        for node, successors in graph.items():
-            for successor in successors:
-                reversed_graph[successor].append(node)
-        
-        return dict(reversed_graph)
 
-    @staticmethod
-    def upstream_dependencies(
-        graph: GraphDict,
-        entity_id: EntityID,
-        max_depth: int | None = None
-    ) -> set[EntityID]:
-        """Calculate all entities that entity_id depends on.
+def is_reachable(
+    graph: DependencyGraph,
+    source_id: EntityID,
+    target_id: EntityID,
+) -> bool:
+    """Check if target is reachable from source (path exists).
+    
+    Uses BFS for efficiency.
+    Complexity: O(V + E) worst case, but often much faster
+    
+    Args:
+        graph: Dependency graph
+        source_id: Starting entity
+        target_id: Target entity
         
-        This is the reverse of blast_radius - finds all upstream dependencies.
+    Returns:
+        True if path exists from source to target
         
-        Args:
-            graph: Adjacency list representation of the graph
-            entity_id: ID of the entity to analyze
-            max_depth: Optional maximum depth to traverse (None for unlimited)
-            
-        Returns:
-            Set of entity IDs that entity_id depends on (directly or indirectly)
-        """
-        reversed_graph = GraphOps.reverse_graph(graph)
-        return GraphOps.blast_radius(reversed_graph, entity_id, max_depth)
+    Examples:
+        >>> # Check if upgrading A will affect B
+        >>> if is_reachable(graph, a_id, b_id):
+        ...     print("Upgrading A may impact B")
+    """
+    if source_id == target_id:
+        return True
+    
+    if source_id not in graph._graph or target_id not in graph._graph:
+        return False
+    
+    nx_graph = graph.to_networkx()
+    return nx.has_path(nx_graph, source_id, target_id)
+
+
+def find_path(
+    graph: DependencyGraph,
+    source_id: EntityID,
+    target_id: EntityID,
+) -> list[EntityID] | None:
+    """Find shortest path from source to target.
+    
+    Uses BFS to find shortest path.
+    Complexity: O(V + E)
+    
+    Args:
+        graph: Dependency graph
+        source_id: Starting entity
+        target_id: Target entity
+        
+    Returns:
+        List of entity IDs forming shortest path, or None if no path exists
+        Path includes both source and target
+        
+    Examples:
+        >>> path = find_path(graph, a_id, d_id)
+        >>> if path:
+        ...     print(f"Dependency chain: {' -> '.join(str(id) for id in path)}")
+    """
+    if source_id == target_id:
+        return [source_id]
+    
+    if source_id not in graph._graph or target_id not in graph._graph:
+        return None
+    
+    nx_graph = graph.to_networkx()
+    
+    try:
+        path = nx.shortest_path(nx_graph, source_id, target_id)
+        return path
+    except nx.NetworkXNoPath:
+        return None
+
+
+def find_all_paths(
+    graph: DependencyGraph,
+    source_id: EntityID,
+    target_id: EntityID,
+    max_paths: int = 10,
+) -> list[list[EntityID]]:
+    """Find all simple paths from source to target.
+    
+    A simple path has no repeated nodes.
+    Limited to max_paths to prevent combinatorial explosion.
+    
+    Args:
+        graph: Dependency graph
+        source_id: Starting entity
+        target_id: Target entity
+        max_paths: Maximum number of paths to return
+        
+    Returns:
+        List of paths, each path is a list of entity IDs
+        Sorted by length (shortest first)
+        
+    Examples:
+        >>> paths = find_all_paths(graph, a_id, z_id, max_paths=5)
+        >>> for i, path in enumerate(paths, 1):
+        ...     print(f"Path {i}: {len(path)} hops")
+    """
+    if source_id == target_id:
+        return [[source_id]]
+    
+    if source_id not in graph._graph or target_id not in graph._graph:
+        return []
+    
+    nx_graph = graph.to_networkx()
+    
+    try:
+        # Get all simple paths (no repeated nodes)
+        all_paths = nx.all_simple_paths(nx_graph, source_id, target_id)
+        
+        # Limit to max_paths and convert to list
+        paths = []
+        for path in all_paths:
+            paths.append(path)
+            if len(paths) >= max_paths:
+                break
+        
+        # Sort by length (shortest first)
+        paths.sort(key=len)
+        
+        return paths
+    except nx.NetworkXNoPath:
+        return []
+
+
+# ============================================================================
+# TRANSITIVE DEPENDENCIES
+# ============================================================================
+
+
+def get_transitive_dependencies(
+    graph: DependencyGraph,
+    entity_id: EntityID,
+    max_depth: int | None = None,
+) -> set[EntityID]:
+    """Get all transitive dependencies (recursive).
+    
+    Returns all entities reachable from the given entity.
+    
+    Args:
+        graph: Dependency graph
+        entity_id: Entity to get dependencies for
+        max_depth: Maximum depth to traverse (None = unlimited)
+        
+    Returns:
+        Set of entity IDs that are transitive dependencies
+        Does NOT include the entity itself
+        
+    Examples:
+        >>> # Get everything A depends on (directly or indirectly)
+        >>> all_deps = get_transitive_dependencies(graph, a_id)
+        >>> print(f"A has {len(all_deps)} total dependencies")
+    """
+    if entity_id not in graph._graph:
+        return set()
+    
+    visited: set[EntityID] = set()
+    queue: deque[tuple[EntityID, int]] = deque([(entity_id, 0)])
+    
+    while queue:
+        current_id, depth = queue.popleft()
+        
+        # Skip if already visited
+        if current_id in visited:
+            continue
+        
+        visited.add(current_id)
+        
+        # Skip adding children if max depth would be exceeded
+        if max_depth is not None and depth >= max_depth:
+            continue
+        
+        # Add dependencies to queue
+        for dep in graph.get_dependencies(current_id):
+            if dep.id not in visited:
+                queue.append((dep.id, depth + 1))
+    
+    # Remove the starting entity
+    visited.discard(entity_id)
+    
+    return visited
+
+
+def get_transitive_dependents(
+    graph: DependencyGraph,
+    entity_id: EntityID,
+    max_depth: int | None = None,
+) -> set[EntityID]:
+    """Get all transitive dependents (reverse recursive).
+    
+    Returns all entities that depend on the given entity (directly or indirectly).
+    
+    Args:
+        graph: Dependency graph
+        entity_id: Entity to get dependents for
+        max_depth: Maximum depth to traverse (None = unlimited)
+        
+    Returns:
+        Set of entity IDs that are transitive dependents
+        Does NOT include the entity itself
+        
+    Examples:
+        >>> # Get everything that depends on A (directly or indirectly)
+        >>> all_dependents = get_transitive_dependents(graph, a_id)
+        >>> print(f"{len(all_dependents)} packages would be affected by changes to A")
+    """
+    if entity_id not in graph._graph:
+        return set()
+    
+    visited: set[EntityID] = set()
+    queue: deque[tuple[EntityID, int]] = deque([(entity_id, 0)])
+    
+    while queue:
+        current_id, depth = queue.popleft()
+        
+        # Skip if already visited
+        if current_id in visited:
+            continue
+        
+        visited.add(current_id)
+        
+        # Skip adding children if max depth would be exceeded
+        if max_depth is not None and depth >= max_depth:
+            continue
+        
+        # Add dependents to queue
+        for dependent in graph.get_dependents(current_id):
+            if dependent.id not in visited:
+                queue.append((dependent.id, depth + 1))
+    
+    # Remove the starting entity
+    visited.discard(entity_id)
+    
+    return visited
