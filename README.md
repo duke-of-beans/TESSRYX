@@ -41,16 +41,16 @@ TESSRYX is a **constraint solver for reality** — combining formal intermediate
 
 ### The Progression: Problem → Friction → Solution
 
-**Week 1-2: The Ceiling**
+**The Ceiling**
 Hit a wall with existing dependency tools — they show pretty graphs but can't answer "is this change safe?" Needed formal verification, not just visualization.
 
-**Week 3-4: The Research**
+**The Research**
 Discovered constraint solvers (OR-Tools, Z3) solve similar problems in scheduling/logistics. Realized: dependencies ARE constraints. Package managers already do naive solving — why not general-purpose dependency intelligence?
 
-**Month 1: The Foundation**
+**The Foundation**
 Built TessIR specification — formal intermediate representation treating dependencies as first-class objects with contracts, provenance, and versioning. Designed four-pillar architecture (TessIR + Solver + Evidence + Versioning).
 
-**Month 2-3: The Implementation**
+**The Implementation**
 Implemented core kernel with graph algorithms (SCC detection, blast radius), provenance ledger (confidence scoring), and impact analysis. Added property-based testing (Hypothesis) for algorithmic correctness.
 
 **Current State:**
@@ -62,29 +62,29 @@ Production-grade foundation with 5,555 lines of code, 1,700+ test cases, perform
 
 **Built with zero traditional coding background using systematic AI-native development methodology.**
 
-### Week-by-Week Progression:
+### Development Progression:
 
-**Weeks 1-2: Strategic Foundation**
-- Ran multi-AI "Genius Council" reviews (GPT-4, Gemini 2.0, Claude)
-- Pivoted from automotive wedge → software development (data availability)
+**Phase 1: Strategic Foundation**
 - Designed TessIR specification with constraints as first-class objects
+- Established four-pillar architecture (TessIR + Solver + Evidence + Versioning)
+- Made strategic pivot from automotive to software development (data availability advantage)
 - **Learning:** Architecture matters more than code — wrong foundation = rewrite everything
 
-**Weeks 3-4: Core Primitives**
+**Phase 2: Core Primitives**
 - Implemented TessIR entities, relations, constraints (Pydantic models)
 - Built provenance ledger with G-Score confidence calculation
 - Added input validator (SQL injection, path traversal, Unicode attacks)
 - **Challenge:** Type safety in Python is subtle — learned mypy strict mode the hard way
 - **106 test cases, 2,197 lines of code**
 
-**Weeks 5-6: Graph Algorithms**
+**Phase 3: Graph Algorithms**
 - Implemented DependencyGraph with NetworkX integration
 - Added SCC detection (Tarjan's algorithm), topological sort, reachability
 - Built dependency impact analyzer (blast radius, critical path, risk scoring)
 - **Challenge:** Graph algorithms have edge cases — circular deps, disconnected components
 - **80 new test cases, 2,268 lines of code**
 
-**Weeks 7-8: Property Testing + Performance**
+**Phase 4: Property Testing + Performance**
 - Integrated Hypothesis for property-based testing (1,500+ generated test cases)
 - Added pytest-benchmark for performance validation
 - Verified O(V+E) complexity empirically across all algorithms
@@ -213,7 +213,7 @@ Frontend:      React + Cytoscape.js
 - [ ] Z3 SMT integration (logical constraints)
 - [ ] Multi-solver orchestration (cascade + tribunal patterns)
 - [ ] Minimal unsat core extraction
-- [ ] Parallel execution (BullMQ + workers)
+- [ ] Parallel execution infrastructure
 
 ---
 
@@ -299,34 +299,34 @@ uvicorn src.api.main:app --reload
 - **Decision Tracking:** ADRs for major architectural choices, CHANGELOG for all changes
 
 ### Learning Velocity
-- **Week 1-2:** Strategic planning + architecture design
-- **Week 3-4:** Core primitives + provenance (2,197 lines, 106 tests)
-- **Week 5-6:** Graph algorithms + impact analysis (2,268 lines, 80 tests)
-- **Week 7-8:** Property testing + performance (1,090 lines test infrastructure)
+- **Phase 1:** Strategic planning + architecture design
+- **Phase 2:** Core primitives + provenance (2,197 lines, 106 tests)
+- **Phase 3:** Graph algorithms + impact analysis (2,268 lines, 80 tests)
+- **Phase 4:** Property testing + performance (1,090 lines test infrastructure)
 
-**From zero to production-grade dependency intelligence in 8 weeks.**
+**From zero to production-grade dependency intelligence with systematic AI-native methodology.**
 
 ---
 
 ## Roadmap
 
-### Phase 2: Solver Integration (Months 4-6)
+### Phase 2: Solver Integration
 - OR-Tools + Z3 integration
 - Constraint solving with proof certificates
 - Minimal unsat core explanations
 - Parallel execution infrastructure
 
-### Phase 3: Versioning (Months 7-8)
+### Phase 3: Versioning
 - Git-like operations (commit, branch, merge, diff)
 - Blast radius on version changes
 - Lockfiles for dependency state
 
-### Phase 4: API + Persistence (Months 9-10)
+### Phase 4: API + Persistence
 - Production PostgreSQL deployment
 - Python SDK
 - Complete REST API
 
-### Phase 5: Software Dev Domain Pack (Months 11-12)
+### Phase 5: Software Dev Domain Pack
 - npm/pip/Maven importers
 - GitHub Action integration
 - Public launch
@@ -367,10 +367,8 @@ MIT License - See [LICENSE](LICENSE)
 
 **AI Development Partners:**
 - Claude (Anthropic) - Primary development assistant
-- GPT-4 (OpenAI) - Strategic architecture review
-- Gemini 2.0 (Google) - Technical implementation guidance
-
-Special thanks to the "Genius Council" multi-AI review process that shaped TESSRYX's foundational architecture through rigorous, unfiltered technical critique.
+- GPT-4 (OpenAI) - Architecture review and strategic guidance
+- Gemini 2.0 (Google) - Technical implementation support
 
 ---
 
